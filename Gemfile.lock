@@ -41,6 +41,9 @@ GEM
       em-websocket (~> 0.5)
       guard (~> 2.8)
       multi_json (~> 1.8)
+    guard-shell (0.7.1)
+      guard (>= 2.0.0)
+      guard-compat (~> 1.0)
     http_parser.rb (0.6.0)
     jasmine (2.3.1)
       jasmine-core (~> 2.3)
@@ -81,6 +84,7 @@ DEPENDENCIES
   guard-coffeescript
   guard-jasmine
   guard-livereload
+  guard-shell
   jasmine
   rb-fsevent
 

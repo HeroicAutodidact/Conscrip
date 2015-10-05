@@ -1,4 +1,4 @@
-
+require 'guard/compat/plugin'
 ## Note: if you are using the `directories` clause above and you are not
 ## watching the project directory ('.'), then you will want to move
 ## the Guardfile to a watched dir and symlink it back, e.g.
@@ -25,7 +25,7 @@ end
 coffeescript_options = {
   input: 'app/assets/coffee',
   output: 'app/assets/js',
-  bare: true, 
+  bare: true,
   patterns: [%r{^app/assets/coffee/(.+\.(?:coffee|coffee\.md|litcoffee))$}]
 }
 
@@ -37,10 +37,21 @@ end
 coffeescript_options = {
   input: 'spec/coffee',
   output: 'spec/javascripts',
-  bare: true, 
+  bare: true,
   patterns: [%r{^spec/coffee/(.+\.(?:coffee|coffee\.md|litcoffee))$}]
 }
 
 guard 'coffeescript', coffeescript_options do
   coffeescript_options[:patterns].each { |pattern| watch(pattern) }
+end
+
+
+#Tape guard
+guard :shell do
+  watch %r{js\/.*/(.*)\.js} do |m|
+    `echo #{m[0]}`
+  end
+  watch %r{test/js/(.*)_spec\.js} do |m|
+    `tape #{m[0]} | tap-spec`
+  end
 end
