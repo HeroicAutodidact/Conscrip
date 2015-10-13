@@ -77,19 +77,19 @@ mvPushMatrix = function() {
   var copy;
   copy = mat4.create();
   mat4.set(mvMatrix, copy);
-  mvMatrixStack.push(copy);
+  return mvMatrixStack.push(copy);
 };
 
 mvPopMatrix = function() {
   if (mvMatrixStack.length === 0) {
     throw 'Invalid popMatrix!';
   }
-  mvMatrix = mvMatrixStack.pop();
+  return mvMatrix = mvMatrixStack.pop();
 };
 
 setMatrixUniforms = function() {
   gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-  gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+  return gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
 };
 
 degToRad = function(degrees) {
@@ -148,26 +148,14 @@ drawScene = function() {
   clearScreen();
   mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
   mat4.identity(mvMatrix);
-  mat4.translate(mvMatrix, [-1.5, 0.0, -7.0]);
-  mvPushMatrix();
-  mat4.rotate(mvMatrix, degToRad(rTri), [0, 1, 0]);
-  gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
-  gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, triangleVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-  setMatrixUniforms();
-  gl.drawArrays(gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems);
-  mvPopMatrix();
-  mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);
-  mvPushMatrix();
+  mat4.translate(mvMatrix, [0.0, 0.0, -7.0]);
   mat4.rotate(mvMatrix, degToRad(rSquare), [1, 0, 0]);
   gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
   gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
   setMatrixUniforms();
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
-  return mvPopMatrix();
+  return gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 };
 
 update = function() {

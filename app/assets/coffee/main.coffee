@@ -66,18 +66,15 @@ mvPushMatrix = ->
   copy = mat4.create()
   mat4.set mvMatrix, copy
   mvMatrixStack.push copy
-  return
 
 mvPopMatrix = ->
   if mvMatrixStack.length == 0
     throw 'Invalid popMatrix!'
   mvMatrix = mvMatrixStack.pop()
-  return
 
 setMatrixUniforms = ->
   gl.uniformMatrix4fv shaderProgram.pMatrixUniform, false, pMatrix
   gl.uniformMatrix4fv shaderProgram.mvMatrixUniform, false, mvMatrix
-  return
 
 degToRad = (degrees) ->
   degrees * Math.PI / 180
@@ -170,21 +167,16 @@ clearScreen = ->
   gl.clear gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT
 
 drawScene = ->
+  #Clear the screen
   clearScreen()
+
+  #Build the perspective Matrix
   mat4.perspective 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix
+
+
+  #Clear the transform matrix
   mat4.identity mvMatrix
-  mat4.translate mvMatrix, [-1.5, 0.0, -7.0 ]
-  mvPushMatrix()
-  mat4.rotate mvMatrix, degToRad(rTri), [0, 1, 0]
-  gl.bindBuffer gl.ARRAY_BUFFER, triangleVertexPositionBuffer
-  gl.vertexAttribPointer shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
-  gl.bindBuffer gl.ARRAY_BUFFER, triangleVertexColorBuffer
-  gl.vertexAttribPointer shaderProgram.vertexColorAttribute, triangleVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0
-  setMatrixUniforms()
-  gl.drawArrays gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems
-  mvPopMatrix()
-  mat4.translate mvMatrix, [3.0, 0.0, 0.0 ]
-  mvPushMatrix()
+  mat4.translate mvMatrix, [0.0, 0.0, -7.0 ]
   mat4.rotate mvMatrix, degToRad(rSquare), [1, 0, 0 ]
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
   gl.vertexAttribPointer shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
@@ -192,7 +184,6 @@ drawScene = ->
   gl.vertexAttribPointer shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0
   setMatrixUniforms()
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-  mvPopMatrix()
 
 update = ->
   timeNow = (new Date).getTime()
