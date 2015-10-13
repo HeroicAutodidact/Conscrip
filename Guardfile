@@ -51,7 +51,7 @@ guard :shell do
   watch %r{js\/.*/(.*)\.js} do |m|
     `echo #{m[0]}`
   end
-  watch %r{test/js/(.*)_spec\.js} do |m|
-    `tape #{m[0]} | tap-spec`
+  watch %r{test/(.*)\.coffee} do |m|
+    `coffeetape #{m[0]} | tap-spec`
   end
 end

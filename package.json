@@ -1,0 +1,23 @@
+{
+  "name": "Duction",
+  "version": "0.0.0",
+  "description": "Abduction Game",
+  "main": "app/js/app.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "coffeetape": "^1.0.1",
+    "tape": "^4.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "coffeetape test* | tap-spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": ".git"
+  },
+  "author": "",
+  "license": "ISC"
+}
