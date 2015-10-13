@@ -5,9 +5,13 @@ triangleVertexPositionBuffer =
 triangleVertexColorBuffer =
 squareVertexPositionBuffer =
 squareVertexColorBuffer = undefined
-mvMatrix = mat4.create()
+
+#Initialize global matrices
+m4 = twgl.m4
+mvMatrix = m4.identity()
 mvMatrixStack = []
-pMatrix = mat4.create()
+pMatrix = m4.identity()
+
 rTri = 0
 rSquare = 0
 lastTime = 0
@@ -57,7 +61,6 @@ initShaders = ->
   gl.enableVertexAttribArray shaderProgram.vertexColorAttribute
   shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, 'uPMatrix')
   shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, 'uMVMatrix')
-  return
 
 mvPushMatrix = ->
   copy = mat4.create()
@@ -79,72 +82,100 @@ setMatrixUniforms = ->
 degToRad = (degrees) ->
   degrees * Math.PI / 180
 
+createVertexBuffer = (verts)->
+  buff = gl.createBuffer()
+  gl.bindBuffer gl.ARRAY_BUFFER, buff
+  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW
+  buff.itemSize = 3
+  buff.numItems = verts.length / 3
+  return buff
+
+createColorBuffer = (colors)->
+  colorBuff = gl.createBuffer()
+  gl.bindBuffer gl.ARRAY_BUFFER, colorBuff
+  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW
+  colorBuff.itemSize = 4
+  colorBuff.numItems = colors.length/4
+  return colorBuff
+
 initBuffers = ->
-  triangleVertexPositionBuffer = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, triangleVertexPositionBuffer
-  vertices = [
+  triVerts = [
     0.0, 1.0, 0.0,
     -1.0, -1.0, 0.0,
     1.0, -1.0, 0.0
   ]
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
-  triangleVertexPositionBuffer.itemSize = 3
-  triangleVertexPositionBuffer.numItems = 3
-  triangleVertexColorBuffer = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, triangleVertexColorBuffer
-  colors = [
-    1.0, 0.0, 0.0,
-    1.0, 0.0, 1.0,
-    0.0, 1.0, 0.0,
-    0.0, 1.0, 1.0,
+  triangleVertexPositionBuffer = createVertexBuffer(triVerts)
+
+  colorsRGB = [
+    1.0, 0.0, 0.0, 1.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0
   ]
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW
-  triangleVertexColorBuffer.itemSize = 4
-  triangleVertexColorBuffer.numItems = 3
-  squareVertexPositionBuffer = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-  vertices = [
-    1.0, 1.0, 0.0,
-    -1.0, 1.0, 0.0,
-    1.0, -1.0, 0.0,
-    -1.0, -1.0, 0.0,
-  ]
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
-  squareVertexPositionBuffer.itemSize = 3
-  squareVertexPositionBuffer.numItems = 4
-  squareVertexColorBuffer = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexColorBuffer
+  triangleVertexColorBuffer = createColorBuffer(colorsRGB)
+
+
+  squareVerts = [
+      # Front face
+      -1.0, -1.0,  1.0,
+       1.0, -1.0,  1.0,
+       1.0,  1.0,  1.0,
+      -1.0,  1.0,  1.0,
+
+      # Back face
+      -1.0, -1.0, -1.0,
+      -1.0,  1.0, -1.0,
+       1.0,  1.0, -1.0,
+       1.0, -1.0, -1.0,
+
+      # Top face
+      -1.0,  1.0, -1.0,
+      -1.0,  1.0,  1.0,
+       1.0,  1.0,  1.0,
+       1.0,  1.0, -1.0,
+
+      # Bottom face
+      -1.0, -1.0, -1.0,
+       1.0, -1.0, -1.0,
+       1.0, -1.0,  1.0,
+      -1.0, -1.0,  1.0,
+
+      # Right face
+       1.0, -1.0, -1.0,
+       1.0,  1.0, -1.0,
+       1.0,  1.0,  1.0,
+       1.0, -1.0,  1.0,
+
+      # Left face
+      -1.0, -1.0, -1.0,
+      -1.0, -1.0,  1.0,
+      -1.0,  1.0,  1.0,
+      -1.0,  1.0, -1.0,
+    ];
+  squareVertexPositionBuffer = createVertexBuffer(squareVerts)
+
   colors = []
   i = 0
-  while i < 4
-    colors = colors.concat([
-      0.5
-      0.5
-      1.0
-      1.0
-    ])
-    i++
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW
-  squareVertexColorBuffer.itemSize = 4
-  squareVertexColorBuffer.numItems = 4
-  return
+  while i<squareVerts.length/3
+    console.log "lol"
+    colors = colors.concat([0.5, 0.5, 1.0, 1.0 ])
+    i+=1
+  squareVertexColorBuffer = createColorBuffer(colors)
+
+initDrawingConfigs = ->
+  gl.clearColor 0.0, 0.0, 0.0, 1.0
+  gl.enable gl.DEPTH_TEST
+  gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
+
+clearScreen = ->
+  gl.clear gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT
 
 drawScene = ->
-  gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
-  gl.clear gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT
+  clearScreen()
   mat4.perspective 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix
   mat4.identity mvMatrix
-  mat4.translate mvMatrix, [
-    -1.5
-    0.0
-    -7.0
-  ]
+  mat4.translate mvMatrix, [-1.5, 0.0, -7.0 ]
   mvPushMatrix()
-  mat4.rotate mvMatrix, degToRad(rTri), [
-    0
-    1
-    0
-  ]
+  mat4.rotate mvMatrix, degToRad(rTri), [0, 1, 0]
   gl.bindBuffer gl.ARRAY_BUFFER, triangleVertexPositionBuffer
   gl.vertexAttribPointer shaderProgram.vertexPositionAttribute, triangleVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
   gl.bindBuffer gl.ARRAY_BUFFER, triangleVertexColorBuffer
@@ -152,17 +183,9 @@ drawScene = ->
   setMatrixUniforms()
   gl.drawArrays gl.TRIANGLES, 0, triangleVertexPositionBuffer.numItems
   mvPopMatrix()
-  mat4.translate mvMatrix, [
-    3.0
-    0.0
-    0.0
-  ]
+  mat4.translate mvMatrix, [3.0, 0.0, 0.0 ]
   mvPushMatrix()
-  mat4.rotate mvMatrix, degToRad(rSquare), [
-    1
-    0
-    0
-  ]
+  mat4.rotate mvMatrix, degToRad(rSquare), [1, 0, 0 ]
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
   gl.vertexAttribPointer shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexColorBuffer
@@ -189,7 +212,6 @@ webGLStart = ->
   initGL canvas
   initShaders()
   initBuffers()
-  gl.clearColor 0.0, 0.0, 0.0, 1.0
-  gl.enable gl.DEPTH_TEST
+  initDrawingConfigs()
   tick()
 
