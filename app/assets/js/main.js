@@ -1,4 +1,4 @@
-var clearScreen, createColorBuffer, createVertexBuffer, degToRad, drawScene, getShader, gl, initBuffers, initDrawingConfigs, initGL, initShaders, lastTime, m4, mvMatrix, mvMatrixStack, mvPopMatrix, mvPushMatrix, pMatrix, rSquare, rTri, setMatrixUniforms, shaderProgram, squareVertexColorBuffer, squareVertexPositionBuffer, tick, triangleVertexColorBuffer, triangleVertexPositionBuffer, update, webGLStart;
+var clearScreen, createColorBuffer, createVertexBuffer, degToRad, drawScene, gl, initBuffers, initDrawingConfigs, initGL, initShaders, lastTime, m4, mvMatrix, mvMatrixStack, mvPopMatrix, mvPushMatrix, pMatrix, rSquare, rTri, setMatrixUniforms, shaderProgram, squareVertexColorBuffer, squareVertexPositionBuffer, tick, triangleVertexColorBuffer, triangleVertexPositionBuffer, update, webGLStart;
 
 gl = shaderProgram = triangleVertexPositionBuffer = triangleVertexColorBuffer = squareVertexPositionBuffer = squareVertexColorBuffer = void 0;
 
@@ -22,41 +22,14 @@ initGL = function(canvas) {
   return gl.viewportHeight = canvas.height;
 };
 
-getShader = function(gl, id) {
-  var k, shader, shaderScript, str;
-  shaderScript = document.getElementById(id);
-  if (!shaderScript) {
-    return null;
-  }
-  str = '';
-  k = shaderScript.firstChild;
-  while (k) {
-    if (k.nodeType === 3) {
-      str += k.textContent;
-    }
-    k = k.nextSibling;
-  }
-  shader = void 0;
-  if (shaderScript.type === 'x-shader/x-fragment') {
-    shader = gl.createShader(gl.FRAGMENT_SHADER);
-  } else if (shaderScript.type === 'x-shader/x-vertex') {
-    shader = gl.createShader(gl.VERTEX_SHADER);
-  } else {
-    return null;
-  }
-  gl.shaderSource(shader, str);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(gl.getShaderInfoLog(shader));
-    return null;
-  }
-  return shader;
-};
-
 initShaders = function() {
   var fragmentShader, vertexShader;
-  fragmentShader = getShader(gl, 'shader-fs');
-  vertexShader = getShader(gl, 'shader-vs');
+  fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, frag_shader);
+  gl.compileShader(fragmentShader);
+  vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vert_shader);
+  gl.compileShader(vertexShader);
   shaderProgram = gl.createProgram();
   gl.attachShader(shaderProgram, vertexShader);
   gl.attachShader(shaderProgram, fragmentShader);
