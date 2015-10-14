@@ -1,4 +1,4 @@
-var clearScreen, createColorBuffer, createVertexBuffer, degToRad, drawScene, gl, initBuffers, initDrawingConfigs, initGL, initShaders, lastTime, m4, mvMatrix, mvMatrixStack, mvPopMatrix, mvPushMatrix, pMatrix, rSquare, rTri, setMatrixUniforms, shaderProgram, squareVertexColorBuffer, squareVertexPositionBuffer, tick, triangleVertexColorBuffer, triangleVertexPositionBuffer, update, webGLStart;
+var clearScreen, createColorBuffer, createVertexBuffer, degToRad, drawScene, gl, initBuffers, initDrawingConfigs, initGL, initShaders, lastTime, m4, mvMatrix, mvMatrixStack, pMatrix, rSquare, rTri, setMatrixUniforms, shaderProgram, squareVertexColorBuffer, squareVertexPositionBuffer, tick, triangleVertexColorBuffer, triangleVertexPositionBuffer, update, webGLStart;
 
 gl = shaderProgram = triangleVertexPositionBuffer = triangleVertexColorBuffer = squareVertexPositionBuffer = squareVertexColorBuffer = void 0;
 
@@ -44,20 +44,6 @@ initShaders = function() {
   gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
   shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, 'uPMatrix');
   return shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, 'uMVMatrix');
-};
-
-mvPushMatrix = function() {
-  var copy;
-  copy = mat4.create();
-  mat4.set(mvMatrix, copy);
-  return mvMatrixStack.push(copy);
-};
-
-mvPopMatrix = function() {
-  if (mvMatrixStack.length === 0) {
-    throw 'Invalid popMatrix!';
-  }
-  return mvMatrix = mvMatrixStack.pop();
 };
 
 setMatrixUniforms = function() {

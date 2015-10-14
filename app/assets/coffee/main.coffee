@@ -44,22 +44,14 @@ initShaders = ->
   if !gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)
     alert 'Could not initialise shaders'
   gl.useProgram shaderProgram
+
+  #Declare attributes and handles
   shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
   gl.enableVertexAttribArray shaderProgram.vertexPositionAttribute
   shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, 'aVertexColor')
   gl.enableVertexAttribArray shaderProgram.vertexColorAttribute
   shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, 'uPMatrix')
   shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, 'uMVMatrix')
-
-mvPushMatrix = ->
-  copy = mat4.create()
-  mat4.set mvMatrix, copy
-  mvMatrixStack.push copy
-
-mvPopMatrix = ->
-  if mvMatrixStack.length == 0
-    throw 'Invalid popMatrix!'
-  mvMatrix = mvMatrixStack.pop()
 
 setMatrixUniforms = ->
   gl.uniformMatrix4fv shaderProgram.pMatrixUniform, false, pMatrix
