@@ -1,4 +1,3 @@
-vert_shader = """
 attribute vec3 aVertexPosition;
 attribute vec4 aVertexColor;
 attribute vec3 aVertexNormal;
@@ -17,4 +16,3 @@ void main(void) {
     vColor = aVertexColor;
     // vColor = vec4(abs(aVertexNormal.x), abs(aVertexNormal.y), abs(aVertexNormal.z), 1.0);
 }
-"""

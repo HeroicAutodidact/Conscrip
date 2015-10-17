@@ -1,0 +1,1 @@
+Open my app by opening app/app.html in firefox. I'm getting an error in Chrome, although the apps seems unaffected. I'll be uploading some final polishes Friday evenining (big exam tomorrow), so if you have other ones to grade first, please do! 
