@@ -5,7 +5,9 @@
 nodes = []         #Nodes in the program
 selectedNodes = [] #Selected nodes
 edges = []
+currentEdgeStart = undefined   #For the creation of edges
 arcs = []
+clicking = false
 dragging = false
 hoverNode = undefined
 
@@ -29,11 +31,13 @@ addNode = (x,y)->
   redraw()
   return
 
-##Displaying
+###Displaying###
+
 clearAndFill = ->
   dCtx.fillStyle = '#EEEEEE'
   dCtx.fillRect(0,0, dCanvas.height, dCanvas.width)
 
+##Displaying Nodes
 displayNode = (node)->
   rad = 4
   dCtx.beginPath()
@@ -41,24 +45,79 @@ displayNode = (node)->
   dCtx.fillStyle = "#888888"
   dCtx.fill()
 
+displayHoverCircle = (n) ->
+  #Displays a circle around a node to indicate mouse hover
+  rad = 8
+  dCtx.beginPath()
+  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
+  dCtx.lineWidth = 2
+  dCtx.strokeStyle = "#888888"
+  dCtx.stroke()
+
+displaySelectionCircle = (n) ->
+  #Displays a circle around a node to indicate mouse hover
+  rad = 5
+  dCtx.beginPath()
+  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
+  dCtx.strokeStyle = "#888888"
+  dCtx.lineWidth = 3
+  dCtx.stroke()
+
+  # rad = 4
+  # dCtx.beginPath()
+  # dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
+  # dCtx.fillStyle = "#888888"
+  # dCtx.stroke()
+
+##Displaying edges
+displayCurrentEdge = ->
+  dCtx.beginPath()
+  dCtx.moveTo currentEdgeStart[0], currentEdgeStart[1]
+  dCtx.lineTo mx, my
+  dCtx.strokeStyle = "#888888"
+  dCtx.lineWidth = 2
+  dCtx.stroke()
+
+displayEdge = (e)->
+  dCtx.beginPath()
+  dCtx.moveTo e[0][0], e[0][1]
+  dCtx.lineTo e[1][0], e[1][1]
+  dCtx.strokeStyle = "#888888"
+  dCtx.lineWidth = 3
+  dCtx.stroke()
+
 ##Clicking and moving
 #tool modes
 toolMode = NOTOOL = 0
 ADDNODES = 1
 MULTISELECT = 2
+STARTLINE = 3
+FINISHLINE = 4
 
 handleClick =  (x,y) ->
-  if toolMode is ADDNODES
-    addNode(x,y)
-  if toolMode is NOTOOL
-    if nodeUnderMouse()
-      selectedNodes = [nodeUnderMouse()]
-  if toolMode is MULTISELECT
-    console.log "in Multiselect"
-    if nodeUnderMouse()
-      console.log "triggered"
-      selectedNodes.push(nodeUnderMouse())
-      console.log "#{selectedNodes}"
+  switch toolMode
+    when ADDNODES
+      addNode(x,y)
+    when NOTOOL
+      if nodeUnderMouse()
+        selectedNodes = [nodeUnderMouse()]
+    when MULTISELECT
+      console.log "in Multiselect"
+      if nodeUnderMouse()
+        console.log "triggered"
+        selectedNodes.push(nodeUnderMouse())
+        console.log "#{selectedNodes}"
+    when STARTLINE
+      if nodeUnderMouse()
+        currentEdgeStart = nodeUnderMouse()
+        toolMode = FINISHLINE
+    when FINISHLINE
+      if nodeUnderMouse()
+        edges.push([currentEdgeStart, nodeUnderMouse()])
+        currentEdgeStart = undefined
+        toolMode = STARTLINE
+
+
 
 nodeUnderMouse = ->
   for n in nodes
@@ -68,37 +127,23 @@ nodeUnderMouse = ->
 
 handleMouseMove = (x, y) ->
   #set global mouse vars
+  dx = x-mx
+  dy = y-my
   mx = x
   my = y
 
   #handle hovering
   hoverNode = nodeUnderMouse()
 
+  #Handle node movement
+  if clicking and toolMode is NOTOOL
+    for n in selectedNodes
+      n[0] += dx
+      n[1] += dy
+
   #console.log "I'm moving to #{mx},#{my}"
   redraw()
 
-
-displayHoverCircle = (n) ->
-  #Displays a circle around a node to indicate mouse hover
-  rad = 6
-  dCtx.beginPath()
-  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
-  dCtx.fillStyle = "#888888"
-  dCtx.stroke()
-
-displaySelectionCircle = (n) ->
-  #Displays a circle around a node to indicate mouse hover
-  rad = 6
-  dCtx.beginPath()
-  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
-  dCtx.fillStyle = "#888888"
-  dCtx.stroke()
-
-  rad = 4
-  dCtx.beginPath()
-  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
-  dCtx.fillStyle = "#888888"
-  dCtx.stroke()
 
 
 updateDrag = ->
@@ -137,13 +182,24 @@ redraw = ->
 
   #console.log "#{toolMode}"
   # Draw all edges
+  if currentEdgeStart
+    displayCurrentEdge()
+
+  for e in edges
+    displayEdge(e)
+
   # Draw all arcs
 
-$(document).click (e)->
+$(document).mousedown (e)->
   #Pass clicks that occur on the canvas to the handler
   h = dCanvas.height
   w = dCanvas.width
+  clicking = true
   handleClick mx, my unless mx>w or mx<0 or my>h or my<0
+
+$(document).mouseup (e)->
+  console.log "mouseup"
+  clicking = false
 
 $(document).mousemove (e)->
   h = dCanvas.height
@@ -164,12 +220,20 @@ $(document).keydown (key)->
     when 27 #esc
       toolMode = NOTOOL
       selectedNodes = []
+      currentEdgeStart = undefined
 
     when 190 #.
       toolMode = ADDNODES
 
-    when 16
+    when 16 #shift
       toolMode = MULTISELECT
+
+    when 76 #l
+      if selectedNodes.length is 2
+        console.log "selected nodes to make a line with: #{selectedNodes}"
+        edges.push([selectedNodes[0],selectedNodes[1]])
+      else
+        toolMode = STARTLINE
     else
       console.log "I'm pressing key: #{key.which}"
   #No matter what
