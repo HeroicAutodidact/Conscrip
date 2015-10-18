@@ -101,6 +101,8 @@ handleClick =  (x,y) ->
     when NOTOOL
       if nodeUnderMouse()
         selectedNodes = [nodeUnderMouse()]
+      else
+        selectedNodes = []
     when MULTISELECT
       console.log "in Multiselect"
       if nodeUnderMouse()
@@ -230,10 +232,11 @@ $(document).keydown (key)->
 
     when 76 #l
       if selectedNodes.length is 2
-        console.log "selected nodes to make a line with: #{selectedNodes}"
         edges.push([selectedNodes[0],selectedNodes[1]])
       else
-        toolMode = STARTLINE
+        if selectedNodes.length is 1
+          currentEdgeStart = selectedNodes[0]
+        toolMode = FINISHLINE
     else
       console.log "I'm pressing key: #{key.which}"
   #No matter what

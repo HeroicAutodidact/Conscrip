@@ -109,6 +109,8 @@ handleClick = function(x, y) {
     case NOTOOL:
       if (nodeUnderMouse()) {
         return selectedNodes = [nodeUnderMouse()];
+      } else {
+        return selectedNodes = [];
       }
       break;
     case MULTISELECT:
@@ -240,10 +242,12 @@ $(document).keydown(function(key) {
       break;
     case 76:
       if (selectedNodes.length === 2) {
-        console.log("selected nodes to make a line with: " + selectedNodes);
         edges.push([selectedNodes[0], selectedNodes[1]]);
       } else {
-        toolMode = STARTLINE;
+        if (selectedNodes.length === 1) {
+          currentEdgeStart = selectedNodes[0];
+        }
+        toolMode = FINISHLINE;
       }
       break;
     default:
