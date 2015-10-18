@@ -54,9 +54,4 @@ guard :shell do
   watch %r{test\/(.*)\.coffee} do |m|
     `coffeetape #{m[0]} | tap-spec`
   end
-  watch %r{app\/assets\/shaders\/(.*)\.((frag)|(vert))} do |m|
-    `echo '#{m[1]} = """' > app/assets/coffee/#{m[1]}\.coffee`
-    `cat #{m[0]} >> app/assets/coffee/#{m[1]}\.coffee`
-    `echo '\n"""' >> app/assets/coffee/#{m[1]}\.coffee`
-  end
 end

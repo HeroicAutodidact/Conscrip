@@ -1,256 +1,184 @@
-#GL globals
-gl =
-shaderProgram =
-triangleVertexPositionBuffer =
-triangleVertexColorBuffer =
-squareVertexPositionBuffer =
-squareVertexNormalBuffer =
-squareVertexColorBuffer = undefined
-camera = undefined
+#CADjs draw
+#A prototype by Gabriel Elkind and Krishnan Suresh
 
-#Initialize global matrices
-m4 = twgl.m4
-mvMatrix = m4.identity()
-mvMatrixStack = []
-pMatrix = m4.identity()
-nMatrix = m4.identity()
+#State of the program
+nodes = []         #Nodes in the program
+selectedNodes = [] #Selected nodes
+edges = []
+arcs = []
+dragging = false
+hoverNode = undefined
 
+#mouse coords
+mx = my = undefined
 
-rTri = 0
-rSquare = 0
-lastTime = 0
+dCanvas = undefined #Just what is drawn to the window
+dCtx = undefined
+canvasScale = 1
 
-initGL = (canvas) ->
-  gl = canvas.getContext('experimental-webgl')
-  gl.viewportWidth = canvas.width
-  gl.viewportHeight = canvas.height
+#Grid settings
+gridSize = undefined
+displayGrid = false
 
-initShaders = ->
-  #Make frag shader
-  fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
-  gl.shaderSource fragmentShader, frag_shader
-  gl.compileShader fragmentShader
+deselect = ->
+  selectedNodes = []
 
-  #Make vertex shader
-  vertexShader = gl.createShader(gl.VERTEX_SHADER)
-  gl.shaderSource vertexShader, vert_shader
-  gl.compileShader vertexShader
+##Adding features
+addNode = (x,y)->
+  nodes.push([x,y])
+  redraw()
+  return
 
-  #initiate shader
-  shaderProgram = gl.createProgram()
+##Displaying
+clearAndFill = ->
+  dCtx.fillStyle = '#EEEEEE'
+  dCtx.fillRect(0,0, dCanvas.height, dCanvas.width)
 
-  #Attach our two programs
-  gl.attachShader shaderProgram, vertexShader
-  gl.attachShader shaderProgram, fragmentShader
+displayNode = (node)->
+  rad = 4
+  dCtx.beginPath()
+  dCtx.arc(node[0], node[1],rad,0,2*Math.PI)
+  dCtx.fillStyle = "#888888"
+  dCtx.fill()
 
-  #Link the program to the graphics card ?
-  gl.linkProgram shaderProgram
-  if !gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)
-    alert 'Could not initialise shaders'
-  gl.useProgram shaderProgram
+##Clicking and moving
+#tool modes
+toolMode = NOTOOL = 0
+ADDNODES = 1
+MULTISELECT = 2
 
-  #Declare attributes and handles
-  shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
-  gl.enableVertexAttribArray shaderProgram.vertexPositionAttribute
-  shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, 'aVertexColor')
-  gl.enableVertexAttribArray shaderProgram.vertexColorAttribute
-  shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, 'aVertexNormal')
-  gl.enableVertexAttribArray shaderProgram.vertexNormalAttribute
+handleClick =  (x,y) ->
+  if toolMode is ADDNODES
+    addNode(x,y)
+  if toolMode is NOTOOL
+    if nodeUnderMouse()
+      selectedNodes = [nodeUnderMouse()]
+  if toolMode is MULTISELECT
+    console.log "in Multiselect"
+    if nodeUnderMouse()
+      console.log "triggered"
+      selectedNodes.push(nodeUnderMouse())
+      console.log "#{selectedNodes}"
 
-  shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, 'uPMatrix')
-  shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, 'uMVMatrix')
-  shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, 'uNMatrix')
+nodeUnderMouse = ->
+  for n in nodes
+    if Math.abs(n[0]-mx)<5 and Math.abs(n[1]-my)<5
+      return n
+  return undefined
 
-setMatrixUniforms = ->
-  gl.uniformMatrix4fv shaderProgram.pMatrixUniform, false, pMatrix
-  gl.uniformMatrix4fv shaderProgram.mvMatrixUniform, false, mvMatrix
-  nMatrix = m4.transpose(m4.inverse(mvMatrix))
-  gl.uniformMatrix4fv shaderProgram.nMatrixUniform, false, nMatrix
-  # console.log "#{nMatrix}" confirmed.... matrix is changing
+handleMouseMove = (x, y) ->
+  #set global mouse vars
+  mx = x
+  my = y
 
-degToRad = (degrees) ->
-  degrees * Math.PI / 180
+  #handle hovering
+  hoverNode = nodeUnderMouse()
 
-createVertexBuffer = (verts)->
-  buff = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, buff
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW
-  buff.itemSize = 3
-  buff.numItems = verts.length / 3
-  return buff
-
-createColorBuffer = (colors)->
-  colorBuff = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, colorBuff
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW
-  colorBuff.itemSize = 4
-  colorBuff.numItems = colors.length/4
-  return colorBuff
-
-initBuffers = ->
-
-  squareVerts = [
-      # Front face
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-      -1.0,  1.0,  1.0,
-       1.0,  1.0,  1.0,
-
-      # Back face
-      -1.0, -1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0, -1.0, -1.0,
-       1.0,  1.0, -1.0,
-
-      # Top face
-       1.0,  1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
-
-      # Bottom face
-      -1.0, -1.0, -1.0,
-       1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-
-      # Right face (magenta)
-       1.0, -1.0,  1.0,
-       1.0, -1.0, -1.0,
-       1.0,  1.0,  1.0,
-       1.0,  1.0, -1.0,
-
-      # Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-      -1.0,  1.0, -1.0,
-      -1.0,  1.0,  1.0,
-    ];
-  squareVertexPositionBuffer = createVertexBuffer(squareVerts)
-  console.log "squareverts length: #{squareVerts.length}"
-
-  colors = [
-      [1.0, 0.0, 0.0, 1.0], # Front face (RED)
-      [1.0, 1.0, 0.0, 1.0], # Back face (Yellow)
-      [0.0, 1.0, 0.0, 1.0], # Top face (Green)
-      [0.0, 0.5, 0.5, 1.0], # Bottom face (probably teal)
-      [1.0, 0.0, 1.0, 1.0], # Right face (Magenta)
-      [0.0, 0.0, 1.0, 1.0]  # Left face (Blue)
-  ];
-  unpackedColors = []
-  for i of colors
-    color = colors[i]
-    j = 0
-    while j < 4
-      unpackedColors = unpackedColors.concat(color)
-      j++
+  #console.log "I'm moving to #{mx},#{my}"
+  redraw()
 
 
-  # i = 0
-  # while i<squareVerts.length/3
-  #   colors = colors.concat([0.5, 0.5, 1.0, 1.0 ])
-  #   i+=1
-  squareVertexColorBuffer = createColorBuffer(unpackedColors)
+displayHoverCircle = (n) ->
+  #Displays a circle around a node to indicate mouse hover
+  rad = 6
+  dCtx.beginPath()
+  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
+  dCtx.fillStyle = "#888888"
+  dCtx.stroke()
 
-  vertexNormals = [
-      # Front face
-      0.0,  0.0,  1.0,
-      0.0,  0.0,  1.0,
-      0.0,  0.0,  1.0,
-      0.0,  0.0,  1.0,
+displaySelectionCircle = (n) ->
+  #Displays a circle around a node to indicate mouse hover
+  rad = 6
+  dCtx.beginPath()
+  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
+  dCtx.fillStyle = "#888888"
+  dCtx.stroke()
 
-      # Back face
-      0.0,  0.0, -1.0,
-      0.0,  0.0, -1.0,
-      0.0,  0.0, -1.0,
-      0.0,  0.0, -1.0,
+  rad = 4
+  dCtx.beginPath()
+  dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
+  dCtx.fillStyle = "#888888"
+  dCtx.stroke()
 
-      # Top face
-      0.0,  1.0,  0.0,
-      0.0,  1.0,  0.0,
-      0.0,  1.0,  0.0,
-      0.0,  1.0,  0.0,
 
-      # Bottom face
-      0.0, -1.0,  0.0,
-      0.0, -1.0,  0.0,
-      0.0, -1.0,  0.0,
-      0.0, -1.0,  0.0,
+updateDrag = ->
+  #Update the position of selected objects
+  #If there's grid snapping, snap objects to grid
 
-      # Right face
-      1.0,  0.0,  0.0,
-      1.0,  0.0,  0.0,
-      1.0,  0.0,  0.0,
-      1.0,  0.0,  0.0,
+doneDragging = ->
+  #Turn off dragging
+  #commit the change to the
 
-      # Left face
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-    ];
-  console.log "vertexNormals length:#{vertexNormals.length}"
-  squareVertexNormalBuffer = createVertexBuffer(vertexNormals)
-
-initDrawingConfigs = ->
-  gl.clearColor 0.0, 0.0, 0.0, 1.0
-  gl.enable gl.DEPTH_TEST
-  gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
-
-camMatrix = (e,g,t)->
-  w = v3.normalize(g);
-  t = v3.normalize(t);
-  u = v3.normalize(v3.cross(t,w));
-
-  return trans(u[0], t[0], w[0], e[0],
-               u[1], t[1], w[1], e[1],
-               u[2], t[2], w[2], e[2],
-               0,    0,    0,   1);
-
-clearScreen = ->
-  gl.clear gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT
-
-drawScene = ->
-  #Clear the screen
-  clearScreen()
-
-  #Build the perspective Matrix
-  mat4.perspective 45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix
-
-  #Clear the transform matrix
-  mat4.identity mvMatrix
-  mat4.translate mvMatrix, [0.0, 0.0, -7.0 ]
-  mat4.rotate mvMatrix, degToRad(rSquare/2), [1, 0, 0 ]
-  mat4.rotate mvMatrix, degToRad(rSquare/4), [0, 1, 0 ]
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-  gl.vertexAttribPointer shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexColorBuffer
-  gl.vertexAttribPointer shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexNormalBuffer
-  gl.vertexAttribPointer shaderProgram.vertexNormalAttribute, squareVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0
-  setMatrixUniforms()
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-  # gl.drawArrays gl.TRIANGLES, 0, squareVertexPositionBuffer.numItems
+init = ->
+  dCanvas = document.getElementById 'theCanvas'
+  dCtx = dCanvas.getContext '2d'
+  clearAndFill()
 
 update = ->
-  timeNow = (new Date).getTime()
-  if lastTime != 0
-    elapsed = timeNow - lastTime
-    rTri += 90 * elapsed / 1000.0
-    rSquare += 75 * elapsed / 1000.0
-  lastTime = timeNow
+  #If the user is dragging, update the selected nodes
 
-tick = ->
-  requestAnimFrame tick
-  drawScene()
-  update()
+redraw = ->
+  #A function to display the the entire program
+  #Should be called any time a model is modified
+  clearAndFill()
+  #If it's set on, draw the grid
 
-webGLStart = ->
-  canvas = document.getElementById('lesson03-canvas')
-  # camera = new Camera(canvas)
-  initGL canvas
-  initShaders()
-  initBuffers()
-  initDrawingConfigs()
-  tick()
+  # Draw all nodes
+  for n in nodes
+    displayNode(n)
 
+  #If I'm hovering over a node, display it
+  if hoverNode
+    displayHoverCircle hoverNode
+
+  # Draw the selected nodes
+  for n in selectedNodes
+    displaySelectionCircle n
+
+  #console.log "#{toolMode}"
+  # Draw all edges
+  # Draw all arcs
+
+$(document).click (e)->
+  #Pass clicks that occur on the canvas to the handler
+  h = dCanvas.height
+  w = dCanvas.width
+  handleClick mx, my unless mx>w or mx<0 or my>h or my<0
+
+$(document).mousemove (e)->
+  h = dCanvas.height
+  w = dCanvas.width
+  x = e.pageX - $(dCanvas).offset().left
+  y = e.pageY - $(dCanvas).offset().top
+  handleMouseMove x, y unless x>w or x<0 or y>h or y<0
+
+$(document).keydown (key)->
+  switch parseInt key.which ,10
+    # when 37 #left arrow pressed
+
+    # when 38 #up
+
+    # when 39 #right
+
+    # when 40 #down
+    when 27 #esc
+      toolMode = NOTOOL
+      selectedNodes = []
+
+    when 190 #.
+      toolMode = ADDNODES
+
+    when 16
+      toolMode = MULTISELECT
+    else
+      console.log "I'm pressing key: #{key.which}"
+  #No matter what
+  redraw()
+
+$(document).keyup (key) ->
+  switch parseInt key.which, 10
+    when 16
+      toolMode = NOTOOL if toolMode is MULTISELECT
+
+$(document).ready ->
+  init()
