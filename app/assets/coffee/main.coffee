@@ -63,11 +63,16 @@ displaySelectionCircle = (n) ->
   dCtx.lineWidth = 3
   dCtx.stroke()
 
-  # rad = 4
-  # dCtx.beginPath()
-  # dCtx.arc(n[0], n[1],rad,0,2*Math.PI)
-  # dCtx.fillStyle = "#888888"
-  # dCtx.stroke()
+
+##Displaying arc
+displayArc = (a)->
+  center = a[1]
+  # radius = Math.sqrt(Math.pow(a[0][0],2), Math.pow(a[0][1],2))
+  # no... this won't work....
+  ctx.beginPath()
+  ctx.arc(center[0], center[1], )
+  ctx.lineWidth = 3
+  ctx.stroke
 
 ##Displaying edges
 displayCurrentEdge = ->
@@ -112,8 +117,10 @@ handleClick =  (x,y) ->
     when STARTLINE
       if nodeUnderMouse()
         currentEdgeStart = nodeUnderMouse()
+        console.log "#{currentEdgeStart}"
         toolMode = FINISHLINE
     when FINISHLINE
+      console.log "in finish line"
       if nodeUnderMouse()
         edges.push([currentEdgeStart, nodeUnderMouse()])
         currentEdgeStart = undefined
@@ -128,6 +135,7 @@ nodeUnderMouse = ->
   return undefined
 
 handleMouseMove = (x, y) ->
+  console.log "In handlemousemove"
   #set global mouse vars
   dx = x-mx
   dy = y-my
@@ -139,6 +147,7 @@ handleMouseMove = (x, y) ->
 
   #Handle node movement
   if clicking and toolMode is NOTOOL
+    console.log "149"
     for n in selectedNodes
       n[0] += dx
       n[1] += dy
@@ -192,6 +201,9 @@ redraw = ->
 
   # Draw all arcs
 
+###
+input handling
+###
 $(document).mousedown (e)->
   #Pass clicks that occur on the canvas to the handler
   h = dCanvas.height
@@ -236,7 +248,7 @@ $(document).keydown (key)->
       else
         if selectedNodes.length is 1
           currentEdgeStart = selectedNodes[0]
-        toolMode = FINISHLINE
+          toolMode = FINISHLINE
     else
       console.log "I'm pressing key: #{key.which}"
   #No matter what

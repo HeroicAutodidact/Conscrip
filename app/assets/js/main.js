@@ -1,4 +1,4 @@
-var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, dragging, edges, gridSize, handleClick, handleMouseMove, hoverNode, init, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag;
+var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayArc, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, dragging, edges, gridSize, handleClick, handleMouseMove, hoverNode, init, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag;
 
 nodes = [];
 
@@ -74,6 +74,15 @@ displaySelectionCircle = function(n) {
   return dCtx.stroke();
 };
 
+displayArc = function(a) {
+  var center;
+  center = a[1];
+  ctx.beginPath();
+  ctx.arc(center[0], center[1]);
+  ctx.lineWidth = 3;
+  return ctx.stroke;
+};
+
 displayCurrentEdge = function() {
   dCtx.beginPath();
   dCtx.moveTo(currentEdgeStart[0], currentEdgeStart[1]);
@@ -124,10 +133,12 @@ handleClick = function(x, y) {
     case STARTLINE:
       if (nodeUnderMouse()) {
         currentEdgeStart = nodeUnderMouse();
+        console.log("" + currentEdgeStart);
         return toolMode = FINISHLINE;
       }
       break;
     case FINISHLINE:
+      console.log("in finish line");
       if (nodeUnderMouse()) {
         edges.push([currentEdgeStart, nodeUnderMouse()]);
         currentEdgeStart = void 0;
@@ -149,12 +160,14 @@ nodeUnderMouse = function() {
 
 handleMouseMove = function(x, y) {
   var dx, dy, i, len, n;
+  console.log("In handlemousemove");
   dx = x - mx;
   dy = y - my;
   mx = x;
   my = y;
   hoverNode = nodeUnderMouse();
   if (clicking && toolMode === NOTOOL) {
+    console.log("149");
     for (i = 0, len = selectedNodes.length; i < len; i++) {
       n = selectedNodes[i];
       n[0] += dx;
@@ -201,6 +214,11 @@ redraw = function() {
   return results;
 };
 
+
+/*
+input handling
+ */
+
 $(document).mousedown(function(e) {
   var h, w;
   h = dCanvas.height;
@@ -246,8 +264,8 @@ $(document).keydown(function(key) {
       } else {
         if (selectedNodes.length === 1) {
           currentEdgeStart = selectedNodes[0];
+          toolMode = FINISHLINE;
         }
-        toolMode = FINISHLINE;
       }
       break;
     default:
