@@ -1,0 +1,2 @@
+Implement a deselect method
+replace calls to nodeUnderMouse with a variable grabbed once

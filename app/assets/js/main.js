@@ -1,4 +1,5 @@
-var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayArc, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, dragging, edges, gridSize, handleClick, handleMouseMove, hoverNode, init, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag;
+var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clamp, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayArc, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, downx, downy, dragging, edges, gridSize, handleMouseDown, handleMouseMove, handleMouseUp, hoverNode, init, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag,
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 nodes = [];
 
@@ -10,6 +11,9 @@ currentEdgeStart = void 0;
 
 arcs = [];
 
+
+/*Mouse state info */
+
 clicking = false;
 
 dragging = false;
@@ -17,6 +21,11 @@ dragging = false;
 hoverNode = void 0;
 
 mx = my = void 0;
+
+
+/*Keeps track of mouse coordinates when mouse was clicked down */
+
+downx = downy = void 0;
 
 dCanvas = void 0;
 
@@ -74,6 +83,9 @@ displaySelectionCircle = function(n) {
   return dCtx.stroke();
 };
 
+
+/*Displaying arc */
+
 displayArc = function(a) {
   var center;
   center = a[1];
@@ -82,6 +94,9 @@ displayArc = function(a) {
   ctx.lineWidth = 3;
   return ctx.stroke;
 };
+
+
+/*Displaying edges */
 
 displayCurrentEdge = function() {
   dCtx.beginPath();
@@ -101,6 +116,9 @@ displayEdge = function(e) {
   return dCtx.stroke();
 };
 
+
+/*Clicking and moving */
+
 toolMode = NOTOOL = 0;
 
 ADDNODES = 1;
@@ -111,15 +129,17 @@ STARTLINE = 3;
 
 FINISHLINE = 4;
 
-handleClick = function(x, y) {
+handleMouseDown = function(x, y) {
+  var ref;
   switch (toolMode) {
     case ADDNODES:
+      deselect();
       return addNode(x, y);
     case NOTOOL:
-      if (nodeUnderMouse()) {
-        return selectedNodes = [nodeUnderMouse()];
-      } else {
-        return selectedNodes = [];
+      if (!(selectedNodes.length > 1 && (ref = nodeUnderMouse(), indexOf.call(selectedNodes, ref) >= 0))) {
+        if (nodeUnderMouse() != null) {
+          return selectedNodes = [nodeUnderMouse()];
+        }
       }
       break;
     case MULTISELECT:
@@ -142,9 +162,28 @@ handleClick = function(x, y) {
       if (nodeUnderMouse()) {
         edges.push([currentEdgeStart, nodeUnderMouse()]);
         currentEdgeStart = void 0;
+
+        /*Get rid of any nodes selected */
+        deselect();
         return toolMode = STARTLINE;
       }
   }
+};
+
+handleMouseUp = function(x, y) {
+
+  /*To differentiate between tapping and dragging behavior */
+  switch (toolMode) {
+    case NOTOOL:
+      if (!dragging && selectedNodes.length > 1) {
+        if (nodeUnderMouse()) {
+          selectedNodes = [nodeUnderMouse()];
+        } else {
+          selectedNodes = [];
+        }
+      }
+  }
+  return redraw();
 };
 
 nodeUnderMouse = function() {
@@ -160,11 +199,13 @@ nodeUnderMouse = function() {
 
 handleMouseMove = function(x, y) {
   var dx, dy, i, len, n;
-  console.log("In handlemousemove");
   dx = x - mx;
   dy = y - my;
   mx = x;
   my = y;
+  if (clicking && (!dx || !dy)) {
+    dragging = true;
+  }
   hoverNode = nodeUnderMouse();
   if (clicking && toolMode === NOTOOL) {
     console.log("149");
@@ -196,9 +237,13 @@ redraw = function() {
     n = nodes[i];
     displayNode(n);
   }
+  console.log("dragging: " + dragging);
+  console.log("clicking: " + clicking);
   if (hoverNode) {
+    console.log("in 204");
     displayHoverCircle(hoverNode);
   }
+  console.log("selectedNode: " + selectedNodes);
   for (j = 0, len1 = selectedNodes.length; j < len1; j++) {
     n = selectedNodes[j];
     displaySelectionCircle(n);
@@ -214,6 +259,10 @@ redraw = function() {
   return results;
 };
 
+clamp = function(min, number, max) {
+  return Math.max(min, Math.min(number, max));
+};
+
 
 /*
 input handling
@@ -224,14 +273,19 @@ $(document).mousedown(function(e) {
   h = dCanvas.height;
   w = dCanvas.width;
   clicking = true;
+  dragging = false;
   if (!(mx > w || mx < 0 || my > h || my < 0)) {
-    return handleClick(mx, my);
+    return handleMouseDown(mx, my);
   }
 });
 
 $(document).mouseup(function(e) {
+  var h, w;
   console.log("mouseup");
-  return clicking = false;
+  h = dCanvas.height;
+  w = dCanvas.width;
+  clicking = false;
+  return handleMouseUp(clamp(0, mx, w), clamp(0, my, h));
 });
 
 $(document).mousemove(function(e) {
@@ -261,6 +315,7 @@ $(document).keydown(function(key) {
     case 76:
       if (selectedNodes.length === 2) {
         edges.push([selectedNodes[0], selectedNodes[1]]);
+        selectedNodes = [];
       } else {
         if (selectedNodes.length === 1) {
           currentEdgeStart = selectedNodes[0];

@@ -7,12 +7,17 @@ selectedNodes = [] #Selected nodes
 edges = []
 currentEdgeStart = undefined   #For the creation of edges
 arcs = []
+
+###Mouse state info###
 clicking = false
 dragging = false
 hoverNode = undefined
 
-#mouse coords
+####mouse coords###
 mx = my = undefined
+
+###Keeps track of mouse coordinates when mouse was clicked down###
+downx = downy = undefined
 
 dCanvas = undefined #Just what is drawn to the window
 dCtx = undefined
@@ -64,7 +69,7 @@ displaySelectionCircle = (n) ->
   dCtx.stroke()
 
 
-##Displaying arc
+###Displaying arc###
 displayArc = (a)->
   center = a[1]
   # radius = Math.sqrt(Math.pow(a[0][0],2), Math.pow(a[0][1],2))
@@ -74,7 +79,7 @@ displayArc = (a)->
   ctx.lineWidth = 3
   ctx.stroke
 
-##Displaying edges
+###Displaying edges###
 displayCurrentEdge = ->
   dCtx.beginPath()
   dCtx.moveTo currentEdgeStart[0], currentEdgeStart[1]
@@ -91,23 +96,23 @@ displayEdge = (e)->
   dCtx.lineWidth = 3
   dCtx.stroke()
 
-##Clicking and moving
-#tool modes
+###Clicking and moving###
+####tool modes###
 toolMode = NOTOOL = 0
 ADDNODES = 1
 MULTISELECT = 2
 STARTLINE = 3
 FINISHLINE = 4
 
-handleClick =  (x,y) ->
+handleMouseDown =  (x,y) ->
   switch toolMode
     when ADDNODES
+      deselect()
       addNode(x,y)
     when NOTOOL
-      if nodeUnderMouse()
-        selectedNodes = [nodeUnderMouse()]
-      else
-        selectedNodes = []
+      unless selectedNodes.length > 1 and nodeUnderMouse() in selectedNodes
+        if nodeUnderMouse()?
+          selectedNodes = [nodeUnderMouse()]
     when MULTISELECT
       console.log "in Multiselect"
       if nodeUnderMouse()
@@ -124,8 +129,23 @@ handleClick =  (x,y) ->
       if nodeUnderMouse()
         edges.push([currentEdgeStart, nodeUnderMouse()])
         currentEdgeStart = undefined
+        ###Get rid of any nodes selected###
+        deselect()
         toolMode = STARTLINE
 
+handleMouseUp = (x, y) ->
+
+  ###To differentiate between tapping and dragging behavior###
+  switch toolMode
+    when NOTOOL
+      if !dragging and selectedNodes.length > 1
+        if nodeUnderMouse()
+          selectedNodes = [nodeUnderMouse()]
+        else
+          selectedNodes = []
+      #Select the node under the mouse if we didn't drag
+      #if !dragging
+  redraw()
 
 
 nodeUnderMouse = ->
@@ -135,12 +155,13 @@ nodeUnderMouse = ->
   return undefined
 
 handleMouseMove = (x, y) ->
-  console.log "In handlemousemove"
   #set global mouse vars
   dx = x-mx
   dy = y-my
   mx = x
   my = y
+  #We're dragging if either is nonzero
+  dragging = true if clicking and (!dx or !dy)
 
   #handle hovering
   hoverNode = nodeUnderMouse()
@@ -184,10 +205,14 @@ redraw = ->
     displayNode(n)
 
   #If I'm hovering over a node, display it
-  if hoverNode
+  console.log "dragging: #{dragging}"
+  console.log "clicking: #{clicking}"
+  if hoverNode# and not dragging
+    console.log "in 204"
     displayHoverCircle hoverNode
 
   # Draw the selected nodes
+  console.log "selectedNode: #{selectedNodes}"
   for n in selectedNodes
     displaySelectionCircle n
 
@@ -201,6 +226,8 @@ redraw = ->
 
   # Draw all arcs
 
+clamp = (min,number,max) ->
+  return Math.max(min, Math.min(number,max))
 ###
 input handling
 ###
@@ -209,11 +236,15 @@ $(document).mousedown (e)->
   h = dCanvas.height
   w = dCanvas.width
   clicking = true
-  handleClick mx, my unless mx>w or mx<0 or my>h or my<0
+  dragging = false #Will be set to true if the mouse moves while down
+  handleMouseDown mx, my unless mx>w or mx<0 or my>h or my<0
 
 $(document).mouseup (e)->
   console.log "mouseup"
+  h = dCanvas.height
+  w = dCanvas.width
   clicking = false
+  handleMouseUp clamp(0,mx,w),clamp(0,my,h)
 
 $(document).mousemove (e)->
   h = dCanvas.height
@@ -245,6 +276,7 @@ $(document).keydown (key)->
     when 76 #l
       if selectedNodes.length is 2
         edges.push([selectedNodes[0],selectedNodes[1]])
+        selectedNodes = []
       else
         if selectedNodes.length is 1
           currentEdgeStart = selectedNodes[0]
