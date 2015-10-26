@@ -1,4 +1,4 @@
-var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clamp, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayArc, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, downx, downy, dragging, edges, gridSize, handleMouseDown, handleMouseMove, handleMouseUp, hoverNode, init, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag,
+var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clamp, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayArc, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, downx, downy, dragging, drawGrid, edges, gridSize, handleMouseDown, handleMouseMove, handleMouseUp, hoverNode, init, makingPath, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 nodes = [];
@@ -33,9 +33,9 @@ dCtx = void 0;
 
 canvasScale = 1;
 
-gridSize = void 0;
+gridSize = 20;
 
-displayGrid = false;
+displayGrid = true;
 
 deselect = function() {
   return selectedNodes = [];
@@ -129,6 +129,11 @@ STARTLINE = 3;
 
 FINISHLINE = 4;
 
+
+/*Modifies the behavior of STARTLINE PRELINE and FINISHLINE if true */
+
+makingPath = false;
+
 handleMouseDown = function(x, y) {
   var ref;
   switch (toolMode) {
@@ -143,29 +148,28 @@ handleMouseDown = function(x, y) {
       }
       break;
     case MULTISELECT:
-      console.log("in Multiselect");
       if (nodeUnderMouse()) {
-        console.log("triggered");
-        selectedNodes.push(nodeUnderMouse());
-        return console.log("" + selectedNodes);
+        return selectedNodes.push(nodeUnderMouse());
       }
       break;
     case STARTLINE:
       if (nodeUnderMouse()) {
         currentEdgeStart = nodeUnderMouse();
-        console.log("" + currentEdgeStart);
         return toolMode = FINISHLINE;
       }
       break;
     case FINISHLINE:
-      console.log("in finish line");
       if (nodeUnderMouse()) {
         edges.push([currentEdgeStart, nodeUnderMouse()]);
         currentEdgeStart = void 0;
 
         /*Get rid of any nodes selected */
         deselect();
-        return toolMode = STARTLINE;
+        if (makingPath) {
+          return console.log("");
+        } else {
+          return toolMode = NOTOOL;
+        }
       }
   }
 };
@@ -208,7 +212,6 @@ handleMouseMove = function(x, y) {
   }
   hoverNode = nodeUnderMouse();
   if (clicking && toolMode === NOTOOL) {
-    console.log("149");
     for (i = 0, len = selectedNodes.length; i < len; i++) {
       n = selectedNodes[i];
       n[0] += dx;
@@ -230,20 +233,44 @@ init = function() {
 
 update = function() {};
 
+drawGrid = function() {
+  var results, x, y;
+  x = 0;
+  y = 0;
+  dCtx.strokeStyle = "#FFFFFF";
+  dCtx.lineWidth = 2;
+  console.log("drawgrid");
+  while (!(y > dCanvas.height)) {
+    dCtx.beginPath();
+    dCtx.moveTo(0, y);
+    dCtx.lineTo(dCanvas.height, y);
+    dCtx.stroke();
+    y += gridSize;
+  }
+  results = [];
+  while (!(x > dCanvas.width)) {
+    dCtx.beginPath();
+    dCtx.moveTo(x, 0);
+    dCtx.lineTo(x, dCanvas.height);
+    dCtx.stroke();
+    results.push(x += gridSize);
+  }
+  return results;
+};
+
 redraw = function() {
   var e, i, j, k, len, len1, len2, n, results;
   clearAndFill();
+  if (displayGrid) {
+    drawGrid();
+  }
   for (i = 0, len = nodes.length; i < len; i++) {
     n = nodes[i];
     displayNode(n);
   }
-  console.log("dragging: " + dragging);
-  console.log("clicking: " + clicking);
   if (hoverNode) {
-    console.log("in 204");
     displayHoverCircle(hoverNode);
   }
-  console.log("selectedNode: " + selectedNodes);
   for (j = 0, len1 = selectedNodes.length; j < len1; j++) {
     n = selectedNodes[j];
     displaySelectionCircle(n);
@@ -281,7 +308,6 @@ $(document).mousedown(function(e) {
 
 $(document).mouseup(function(e) {
   var h, w;
-  console.log("mouseup");
   h = dCanvas.height;
   w = dCanvas.width;
   clicking = false;
@@ -316,12 +342,14 @@ $(document).keydown(function(key) {
       if (selectedNodes.length === 2) {
         edges.push([selectedNodes[0], selectedNodes[1]]);
         selectedNodes = [];
+      } else if (selectedNodes.length === 1) {
+        currentEdgeStart = selectedNodes[0];
+        toolMode = FINISHLINE;
       } else {
-        if (selectedNodes.length === 1) {
-          currentEdgeStart = selectedNodes[0];
-          toolMode = FINISHLINE;
-        }
+        toolMode = STARTLINE;
       }
+      break;
+    case 78:
       break;
     default:
       console.log("I'm pressing key: " + key.which);

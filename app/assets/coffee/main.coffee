@@ -24,8 +24,8 @@ dCtx = undefined
 canvasScale = 1
 
 #Grid settings
-gridSize = undefined
-displayGrid = false
+gridSize = 20
+displayGrid = true
 
 deselect = ->
   selectedNodes = []
@@ -104,6 +104,9 @@ MULTISELECT = 2
 STARTLINE = 3
 FINISHLINE = 4
 
+###Modifies the behavior of STARTLINE PRELINE and FINISHLINE if true###
+makingPath = false
+
 handleMouseDown =  (x,y) ->
   switch toolMode
     when ADDNODES
@@ -114,24 +117,24 @@ handleMouseDown =  (x,y) ->
         if nodeUnderMouse()?
           selectedNodes = [nodeUnderMouse()]
     when MULTISELECT
-      console.log "in Multiselect"
       if nodeUnderMouse()
-        console.log "triggered"
         selectedNodes.push(nodeUnderMouse())
-        console.log "#{selectedNodes}"
     when STARTLINE
       if nodeUnderMouse()
         currentEdgeStart = nodeUnderMouse()
-        console.log "#{currentEdgeStart}"
         toolMode = FINISHLINE
     when FINISHLINE
-      console.log "in finish line"
       if nodeUnderMouse()
         edges.push([currentEdgeStart, nodeUnderMouse()])
         currentEdgeStart = undefined
         ###Get rid of any nodes selected###
         deselect()
-        toolMode = STARTLINE
+        #toolMode = STARTLINE
+        if makingPath
+          console.log ""
+        else
+          toolMode = NOTOOL
+
 
 handleMouseUp = (x, y) ->
 
@@ -168,7 +171,6 @@ handleMouseMove = (x, y) ->
 
   #Handle node movement
   if clicking and toolMode is NOTOOL
-    console.log "149"
     for n in selectedNodes
       n[0] += dx
       n[1] += dy
@@ -194,25 +196,41 @@ init = ->
 update = ->
   #If the user is dragging, update the selected nodes
 
+drawGrid = ->
+  x = 0
+  y = 0
+  dCtx.strokeStyle = "#FFFFFF"
+  dCtx.lineWidth = 2
+  console.log "drawgrid"
+  until y > dCanvas.height
+    dCtx.beginPath()
+    dCtx.moveTo(0,y)
+    dCtx.lineTo(dCanvas.height, y)
+    dCtx.stroke()
+    y+=gridSize
+  until x > dCanvas.width
+    dCtx.beginPath()
+    dCtx.moveTo(x,0)
+    dCtx.lineTo(x,dCanvas.height)
+    dCtx.stroke()
+    x+=gridSize
+
 redraw = ->
   #A function to display the the entire program
   #Should be called any time a model is modified
   clearAndFill()
   #If it's set on, draw the grid
+  drawGrid() if displayGrid
 
   # Draw all nodes
   for n in nodes
     displayNode(n)
 
   #If I'm hovering over a node, display it
-  console.log "dragging: #{dragging}"
-  console.log "clicking: #{clicking}"
   if hoverNode# and not dragging
-    console.log "in 204"
     displayHoverCircle hoverNode
 
   # Draw the selected nodes
-  console.log "selectedNode: #{selectedNodes}"
   for n in selectedNodes
     displaySelectionCircle n
 
@@ -240,7 +258,6 @@ $(document).mousedown (e)->
   handleMouseDown mx, my unless mx>w or mx<0 or my>h or my<0
 
 $(document).mouseup (e)->
-  console.log "mouseup"
   h = dCanvas.height
   w = dCanvas.width
   clicking = false
@@ -277,10 +294,13 @@ $(document).keydown (key)->
       if selectedNodes.length is 2
         edges.push([selectedNodes[0],selectedNodes[1]])
         selectedNodes = []
-      else
-        if selectedNodes.length is 1
+      else if selectedNodes.length is 1
           currentEdgeStart = selectedNodes[0]
           toolMode = FINISHLINE
+      else
+        toolMode = STARTLINE
+    when 78 then#n
+      #pathMaking = true
     else
       console.log "I'm pressing key: #{key.which}"
   #No matter what
