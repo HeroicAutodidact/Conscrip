@@ -1,4 +1,4 @@
-var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clamp, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deselect, displayArc, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, doneDragging, downx, downy, dragging, drawGrid, edges, gridSize, handleMouseDown, handleMouseMove, handleMouseUp, hoverNode, init, makingPath, mx, my, nodeUnderMouse, nodes, redraw, selectedNodes, toolMode, update, updateDrag,
+var ADDNODES, FINISHLINE, MULTISELECT, NOTOOL, STARTLINE, addNode, arcs, canvasScale, clamp, clearAndFill, clicking, currentEdgeStart, dCanvas, dCtx, deleteNode, deselect, displayCurrentEdge, displayEdge, displayGrid, displayHoverCircle, displayNode, displaySelectionCircle, downx, downy, dragging, drawGrid, edges, getCJSString, getConnectedEdges, gridSize, handleMouseDown, handleMouseMove, handleMouseUp, hoverNode, init, makingPath, mx, my, nodeUnderMouse, nodes, redraw, resultStringDisplay, selectedNodes, stringRep, toolMode, update,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 nodes = [];
@@ -30,6 +30,8 @@ downx = downy = void 0;
 dCanvas = void 0;
 
 dCtx = void 0;
+
+resultStringDisplay = void 0;
 
 canvasScale = 1;
 
@@ -63,6 +65,15 @@ displayNode = function(node) {
   return dCtx.fill();
 };
 
+deleteNode = function(nodeToDelete) {
+  nodes = nodes.filter(function(n) {
+    return n !== nodeToDelete;
+  });
+  return edges = edges.filter(function(e) {
+    return indexOf.call(e, nodeToDelete) < 0;
+  });
+};
+
 displayHoverCircle = function(n) {
   var rad;
   rad = 8;
@@ -81,18 +92,6 @@ displaySelectionCircle = function(n) {
   dCtx.strokeStyle = "#888888";
   dCtx.lineWidth = 3;
   return dCtx.stroke();
-};
-
-
-/*Displaying arc */
-
-displayArc = function(a) {
-  var center;
-  center = a[1];
-  ctx.beginPath();
-  ctx.arc(center[0], center[1]);
-  ctx.lineWidth = 3;
-  return ctx.stroke;
 };
 
 
@@ -135,11 +134,16 @@ FINISHLINE = 4;
 makingPath = false;
 
 handleMouseDown = function(x, y) {
-  var ref;
+  var newPathNode, ref;
   switch (toolMode) {
     case ADDNODES:
       deselect();
-      return addNode(x, y);
+      addNode(x, y);
+      if (makingPath) {
+        toolMode = FINISHLINE;
+        return currentEdgeStart = nodeUnderMouse();
+      }
+      break;
     case NOTOOL:
       if (!(selectedNodes.length > 1 && (ref = nodeUnderMouse(), indexOf.call(selectedNodes, ref) >= 0))) {
         if (nodeUnderMouse() != null) {
@@ -161,15 +165,21 @@ handleMouseDown = function(x, y) {
     case FINISHLINE:
       if (nodeUnderMouse()) {
         edges.push([currentEdgeStart, nodeUnderMouse()]);
-        currentEdgeStart = void 0;
 
         /*Get rid of any nodes selected */
         deselect();
         if (makingPath) {
-          return console.log("");
+          return currentEdgeStart = nodeUnderMouse();
         } else {
+          currentEdgeStart = void 0;
           return toolMode = NOTOOL;
         }
+      } else if (makingPath) {
+        newPathNode = [mx, my];
+        edges.push([currentEdgeStart, newPathNode]);
+        console.log(edges);
+        currentEdgeStart = newPathNode;
+        return nodes.push(newPathNode);
       }
   }
 };
@@ -221,14 +231,74 @@ handleMouseMove = function(x, y) {
   return redraw();
 };
 
-updateDrag = function() {};
 
-doneDragging = function() {};
+/*CADjs string creation and display */
+
+stringRep = "";
+
+getConnectedEdges = function(n) {
+
+  /*
+  obviously it would be significantly more efficient to simply store
+  this information in nodes and update it as we move along. Will be changed
+  in further iterations
+   */
+  return edges.filter(function(e) {
+    return indexOf.call(e, n) >= 0;
+  });
+};
+
+getCJSString = function() {
+  var CJSString, buildContinuity, continuities, e, examinedEdges, i, len, newContinuity;
+  CJSString = "";
+  continuities = [];
+  examinedEdges = [];
+  buildContinuity = function(cont) {
+    var connectedEdges, connectedEdgesWithoutLast, nextEdge, nextNode;
+    connectedEdges = getConnectedEdges(cont[cont.length - 1]);
+    console.log(connectedEdges);
+    if (connectedEdges.length > 2) {
+      return "More than two edges are connected to a node!";
+    }
+    if (connectedEdges.length < 2) {
+      return "Discontinuous";
+    }
+    connectedEdgesWithoutLast = connectedEdges.filter(function(e) {
+      return indexOf.call(examinedEdges, e) < 0;
+    });
+    nextEdge = connectedEdgesWithoutLast[0];
+    examinedEdges.push(nextEdge);
+    nextNode = (nextEdge.filter(function(n) {
+      return n !== cont[cont.length - 1];
+    }))[0];
+    if (nextNode === cont[0]) {
+      console.log("215");
+      return JSON.stringify(cont);
+    } else {
+      return buildContinuity(cont.concat([nextNode]));
+    }
+  };
+  for (i = 0, len = edges.length; i < len; i++) {
+    e = edges[i];
+
+    /*Unless we've already looked at e... */
+    if (indexOf.call(examinedEdges, e) < 0) {
+
+      /*Establish start node */
+      newContinuity = buildContinuity([e[0]]);
+      if (indexOf.call(continuities, newContinuity) < 0) {
+        continuities.push(newContinuity);
+      }
+    }
+  }
+  return continuities;
+};
 
 init = function() {
   dCanvas = document.getElementById('theCanvas');
   dCtx = dCanvas.getContext('2d');
-  return clearAndFill();
+  resultStringDisplay = document.getElementById('cjsstring');
+  return redraw();
 };
 
 update = function() {};
@@ -259,7 +329,7 @@ drawGrid = function() {
 };
 
 redraw = function() {
-  var e, i, j, k, len, len1, len2, n, results;
+  var e, i, j, k, len, len1, len2, n;
   clearAndFill();
   if (displayGrid) {
     drawGrid();
@@ -278,12 +348,13 @@ redraw = function() {
   if (currentEdgeStart) {
     displayCurrentEdge();
   }
-  results = [];
   for (k = 0, len2 = edges.length; k < len2; k++) {
     e = edges[k];
-    results.push(displayEdge(e));
+    displayEdge(e);
   }
-  return results;
+
+  /*Display the text CADJS string */
+  return resultStringDisplay.textContent = getCJSString();
 };
 
 clamp = function(min, number, max) {
@@ -326,6 +397,7 @@ $(document).mousemove(function(e) {
 });
 
 $(document).keydown(function(key) {
+  var i, j, len, len1, n;
   switch (parseInt(key.which, 10)) {
     case 27:
       toolMode = NOTOOL;
@@ -334,9 +406,11 @@ $(document).keydown(function(key) {
       break;
     case 190:
       toolMode = ADDNODES;
+      makingPath = false;
       break;
     case 16:
       toolMode = MULTISELECT;
+      makingPath = false;
       break;
     case 76:
       if (selectedNodes.length === 2) {
@@ -348,8 +422,26 @@ $(document).keydown(function(key) {
       } else {
         toolMode = STARTLINE;
       }
+      makingPath = false;
       break;
     case 78:
+      toolMode = ADDNODES;
+      makingPath = true;
+      console.log("makingPath");
+      break;
+    case 88:
+      for (i = 0, len = selectedNodes.length; i < len; i++) {
+        n = selectedNodes[i];
+        deleteNode(n);
+      }
+      selectedNodes = [];
+      break;
+    case 64:
+      for (j = 0, len1 = selectedNodes.length; j < len1; j++) {
+        n = selectedNodes[j];
+        deleteNode(n);
+      }
+      selectedNodes = [];
       break;
     default:
       console.log("I'm pressing key: " + key.which);

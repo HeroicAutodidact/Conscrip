@@ -21,6 +21,7 @@ downx = downy = undefined
 
 dCanvas = undefined #Just what is drawn to the window
 dCtx = undefined
+resultStringDisplay = undefined
 canvasScale = 1
 
 #Grid settings
@@ -50,6 +51,10 @@ displayNode = (node)->
   dCtx.fillStyle = "#888888"
   dCtx.fill()
 
+deleteNode = (nodeToDelete)->
+  nodes = nodes.filter (n)-> n isnt nodeToDelete
+  edges = edges.filter (e)-> nodeToDelete not in e
+
 displayHoverCircle = (n) ->
   #Displays a circle around a node to indicate mouse hover
   rad = 8
@@ -68,16 +73,6 @@ displaySelectionCircle = (n) ->
   dCtx.lineWidth = 3
   dCtx.stroke()
 
-
-###Displaying arc###
-displayArc = (a)->
-  center = a[1]
-  # radius = Math.sqrt(Math.pow(a[0][0],2), Math.pow(a[0][1],2))
-  # no... this won't work....
-  ctx.beginPath()
-  ctx.arc(center[0], center[1], )
-  ctx.lineWidth = 3
-  ctx.stroke
 
 ###Displaying edges###
 displayCurrentEdge = ->
@@ -112,6 +107,9 @@ handleMouseDown =  (x,y) ->
     when ADDNODES
       deselect()
       addNode(x,y)
+      if makingPath
+        toolMode = FINISHLINE
+        currentEdgeStart = nodeUnderMouse()
     when NOTOOL
       unless selectedNodes.length > 1 and nodeUnderMouse() in selectedNodes
         if nodeUnderMouse()?
@@ -126,14 +124,20 @@ handleMouseDown =  (x,y) ->
     when FINISHLINE
       if nodeUnderMouse()
         edges.push([currentEdgeStart, nodeUnderMouse()])
-        currentEdgeStart = undefined
         ###Get rid of any nodes selected###
         deselect()
         #toolMode = STARTLINE
         if makingPath
-          console.log ""
+          currentEdgeStart = nodeUnderMouse()
         else
+          currentEdgeStart = undefined
           toolMode = NOTOOL
+      else if makingPath
+        newPathNode = [mx, my]
+        edges.push([currentEdgeStart, newPathNode])
+        console.log edges
+        currentEdgeStart = newPathNode
+        nodes.push(newPathNode)
 
 
 handleMouseUp = (x, y) ->
@@ -178,20 +182,51 @@ handleMouseMove = (x, y) ->
   #console.log "I'm moving to #{mx},#{my}"
   redraw()
 
+###CADjs string creation and display###
+stringRep = ""
 
+getConnectedEdges = (n)->
+  ###
+  obviously it would be significantly more efficient to simply store
+  this information in nodes and update it as we move along. Will be changed
+  in further iterations
+  ###
+  return edges.filter (e) -> n in e
 
-updateDrag = ->
-  #Update the position of selected objects
-  #If there's grid snapping, snap objects to grid
+getCJSString = ->
+  CJSString = ""
+  continuities = []
+  examinedEdges = []
+  buildContinuity = (cont) ->
+    connectedEdges = getConnectedEdges(cont[cont.length-1])
+    console.log connectedEdges
+    if connectedEdges.length > 2
+      return "More than two edges are connected to a node!"
+    if connectedEdges.length < 2
+      return "Discontinuous"
+    connectedEdgesWithoutLast = connectedEdges.filter (e) -> e not in examinedEdges
+    nextEdge = connectedEdgesWithoutLast[0]
+    examinedEdges.push(nextEdge)
+    nextNode = (nextEdge.filter (n)-> n isnt cont[cont.length-1] )[0]
+    if nextNode is cont[0]
+      console.log "215"
+      return JSON.stringify(cont)
+    else
+      return buildContinuity(cont.concat [nextNode])
+  for e in edges
+    ###Unless we've already looked at e...###
+    unless e in examinedEdges
+      ###Establish start node###
+      newContinuity = buildContinuity([e[0]])
+      continuities.push(newContinuity) unless newContinuity in continuities
+  return continuities
 
-doneDragging = ->
-  #Turn off dragging
-  #commit the change to the
 
 init = ->
   dCanvas = document.getElementById 'theCanvas'
   dCtx = dCanvas.getContext '2d'
-  clearAndFill()
+  resultStringDisplay = document.getElementById 'cjsstring'
+  redraw()
 
 update = ->
   #If the user is dragging, update the selected nodes
@@ -244,6 +279,9 @@ redraw = ->
 
   # Draw all arcs
 
+  ###Display the text CADJS string###
+  resultStringDisplay.textContent = getCJSString()
+
 clamp = (min,number,max) ->
   return Math.max(min, Math.min(number,max))
 ###
@@ -286,9 +324,11 @@ $(document).keydown (key)->
 
     when 190 #.
       toolMode = ADDNODES
+      makingPath = false
 
     when 16 #shift
       toolMode = MULTISELECT
+      makingPath = false
 
     when 76 #l
       if selectedNodes.length is 2
@@ -299,8 +339,19 @@ $(document).keydown (key)->
           toolMode = FINISHLINE
       else
         toolMode = STARTLINE
-    when 78 then#n
-      #pathMaking = true
+      makingPath = false
+    when 78 #n
+      toolMode = ADDNODES
+      makingPath = true
+      console.log "makingPath"
+    when 88
+      for n in selectedNodes
+        deleteNode(n)
+      selectedNodes = []
+    when 64
+      for n in selectedNodes
+        deleteNode(n)
+      selectedNodes = []
     else
       console.log "I'm pressing key: #{key.which}"
   #No matter what
