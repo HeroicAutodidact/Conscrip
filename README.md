@@ -2,10 +2,13 @@ Conscrip is a standalone web app designed to act as a graphical interface for th
 
 ##Usage
 Keyboard shortcuts:
-  . Enters node placement mode
-  l Enters edge placement mode
-  p Enters path placement mode
-  Esc Enters selection mode
+
+    . Enters node placement mode
+    l Enters edge placement mode
+    p Enters path placement mode
+    Esc Enters selection mode
+
+Build Jordan curves, then copy and paste them into JSCAD!
 
 ##Development
 Be sure that you have an understanding of either coffeescript or javascript before reading through the source code of Conscrip. Before beginning development, make sure bundle is installed, then install the required pacakges from the project root directory with
