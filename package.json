@@ -1,5 +1,5 @@
 {
-  "name": "Duction",
+  "name": "conscript",
   "version": "0.0.0",
   "description": "Abduction Game",
   "main": "app/js/app.js",
@@ -7,8 +7,6 @@
     "test": "test"
   },
   "dependencies": {
-    "coffeetape": "^1.0.1",
-    "tape": "^4.2.1"
   },
   "devDependencies": {},
   "scripts": {

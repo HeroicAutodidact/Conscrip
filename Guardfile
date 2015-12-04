@@ -22,36 +22,37 @@ guard 'livereload', :notify=>true do
 end
 
 #Convert my app from coffeescript to javascript
-coffeescript_options = {
-  input: 'app/assets/coffee',
-  output: 'app/assets/js',
-  bare: true,
-  patterns: [%r{^app/assets/coffee/(.+\.(?:coffee|coffee\.md|litcoffee))$}]
-}
+# coffeescript_options = {
+#   input: 'app/assets/coffee',
+#   output: 'app/assets/js',
+#   source_map: true,
+#   bare: true,
+#   patterns: [%r{^app/assets/coffee/(.+\.(?:coffee|coffee\.md|litcoffee))$}]
+# }
 
-guard 'coffeescript', coffeescript_options do
-  coffeescript_options[:patterns].each { |pattern| watch(pattern) }
-end
+# guard 'coffeescript', coffeescript_options do
+#   coffeescript_options[:patterns].each { |pattern| watch(pattern) }
+# end
 
-#Watch the specs directory and convert jasmine coffees to jasmine js files
-coffeescript_options = {
-  input: 'spec/coffee',
-  output: 'spec/javascripts',
-  bare: true,
-  patterns: [%r{^spec/coffee/(.+\.(?:coffee|coffee\.md|litcoffee))$}]
-}
+# #Watch the specs directory and convert jasmine coffees to jasmine js files
+# coffeescript_options = {
+#   input: 'spec/coffee',
+#   output: 'spec/javascripts',
+#   bare: true,
+#   patterns: [%r{^spec/coffee/(.+\.(?:coffee|coffee\.md|litcoffee))$}]
+# }
 
-guard 'coffeescript', coffeescript_options do
-  coffeescript_options[:patterns].each { |pattern| watch(pattern) }
-end
+# guard 'coffeescript', coffeescript_options do
+#   coffeescript_options[:patterns].each { |pattern| watch(pattern) }
+# end
 
 
 #Tape guard
 guard :shell do
-  watch %r{js\/.*/(.*)\.js} do |m|
-    `echo #{m[0]}`
+  watch %r{app\/assets\/.*\.coffee} do |m|
+    `webpack -d`
   end
   watch %r{test\/(.*)\.coffee} do |m|
-    `coffeetape #{m[0]} | tap-spec`
+    `coffeetape '#{m[0]} | tap-spec'`
   end
 end
