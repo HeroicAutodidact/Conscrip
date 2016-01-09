@@ -1,0 +1,10 @@
+Install npm and all dependencies with:
+    sudo apt-get install npm 
+    sudo npm install npm -g
+    sudo npm install -g webpack coffee-loader
+    npm install 
+
+Every time you work on Conscript, start up the development server with 
+    wepack-dev-server -d
+
+and access the contiuously updated application at http://localhost:8080/webpack-dev-server/app/app.html

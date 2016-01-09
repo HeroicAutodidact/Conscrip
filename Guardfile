@@ -10,14 +10,14 @@ require 'guard/compat/plugin'
 # and, you'll have to watch "config/Guardfile" instead of "Guardfile"
 
 
-guard :jasmine, :server => :jasmine_gem, :port=>8888, :jasmine_url => 'http://localhost:8888/', :server_timeout => 120 do
-  watch(%r{spec\/javascripts\/.+})
-  watch(%r{js\/(.+)\.js}) { |m| "spec/javascripts/#{m[1]}_spec.js" }
-  #watch(%r{app/assets/javascripts/(.+?)\.(js\.coffee|js|coffee)(?:\.\w+)*$}) { |m| "spec/javascripts/#{ m[1] }_spec.#{ m[2] }" }
-end
+# guard :jasmine, :server => :jasmine_gem, :port=>8888, :jasmine_url => 'http://localhost:8888/', :server_timeout => 120 do
+#   watch(%r{spec\/javascripts\/.+})
+#   watch(%r{js\/(.+)\.js}) { |m| "spec/javascripts/#{m[1]}_spec.js" }
+#   #watch(%r{app/assets/javascripts/(.+?)\.(js\.coffee|js|coffee)(?:\.\w+)*$}) { |m| "spec/javascripts/#{ m[1] }_spec.#{ m[2] }" }
+# end
 
 guard 'livereload', :notify=>true do
-  watch(%r{js\/.*\.js}){'index.html'}
+  watch(%r{app\/assets\/coffee\/.*\.coffee}){'app/app.html'}
   watch(%r{index.html})
 end
 
@@ -46,13 +46,24 @@ end
 #   coffeescript_options[:patterns].each { |pattern| watch(pattern) }
 # end
 
+guard 'mocha-node', :mocha_bin => File.expand_path(File.dirname(__FILE__) + "/node_modules/mocha/bin/mocha") do
+  watch(%r{^test/(.+)_spec\.(js\.coffee|js|coffee)})  { |m| "test/#{m[1]}_spec.#{m[2]}" }
+  watch(%r{^app/assets/coffee/(.+)\.(js\.coffee|js|coffee)})        { |m| "test/#{m[1]}_spec.#{m[2]}" }
+  # watch(%r{spec/spec_helper\.(js\.coffee|js|coffee)}) { "spec" }
+end
+
 
 #Tape guard
 guard :shell do
-  watch %r{app\/assets\/.*\.coffee} do |m|
+  watch %r{app\/assets\/coffee\/.*\.coffee} do |m|
     `webpack -d`
   end
-  watch %r{test\/(.*)\.coffee} do |m|
-    `coffeetape '#{m[0]} | tap-spec'`
-  end
+  # watch %r{test\/(.*)\.coffee} do |m|
+  #   #`coffeetape '#{m[0]} | tap-spec'`
+  #   `mocha --compilers coffee:coffee-script/register`
+  # end
+  # watch %r{app\/assets\/coffee\/(.*)\.coffee} do |m|
+  #   #`coffeetape '#{m[0]} | tap-spec'`
+  #   `mocha --compilers coffee:coffee-script/register`
+  # end
 end

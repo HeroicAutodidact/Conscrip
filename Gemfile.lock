@@ -41,6 +41,8 @@ GEM
       em-websocket (~> 0.5)
       guard (~> 2.8)
       multi_json (~> 1.8)
+    guard-mocha-node (0.0.6)
+      guard (>= 0.4)
     guard-shell (0.7.1)
       guard (>= 2.0.0)
       guard-compat (~> 1.0)
@@ -84,6 +86,7 @@ DEPENDENCIES
   guard-coffeescript
   guard-jasmine
   guard-livereload
+  guard-mocha-node
   guard-shell
   jasmine
   rb-fsevent

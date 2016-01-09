@@ -1,21 +1,26 @@
 #Assumptions and standards
+$ = require 'jquery'
+_ = require 'lodash'
+SketchData = require './sketchdata'
 
 #Every module has its own settings
-sketchDisplay.defaultSettings = {
-	nodeSize: 3
-	nodeColor: '#888888'
-}
 
-settings = sketchDisplay.settings = sketchDisplay.defaultSettings
-
-sketchDisplay = ->
+sketchDisplay = (sketchdata)->
 	##This is the window which is be used to display sketches
+
+	#Canvas setup
 	@_canvas = document.createElement('canvas')
 	@_canvas.height = 500
 	@_canvas.width = 500
 	@_canvas.id = 'conscriptDisplay'
 	@c = @_canvas.getContext '2d'
+
+	#Initialize all drawing protocols
 	@_protocols = settings.protocols
+
+	#Initialize the sketchdata object
+	@sketchdata = sketchdata
+
 	return
 
 
@@ -27,18 +32,39 @@ sketchDisplay::attach = (parentElement)->
 	return
 
 sketchDisplay::getProtocols = ->
-	return Object.keys(@_protocols)
+	return _.values(@_protocols)
+
+sketchDisplay::draw = ->
+	for protocol in @getProtocols()
+		protocol.apply @
 
 
 ###Some drawing methods included by default###
-drawNode = (node)->
-	@c.save()
-	@c.beginPath()
+
+drawNode = (ctx,node)->
+	ctx.save()
+	ctx.beginPath()
 	radius = settings.nodeSize
-	@c.arc(node.x,node.y,radius,0,2*Math.PI)
-	@c.strokeStyle = settings.nodeColor
-	@c.stroke()
-	@c.closePath()
+	ctx.arc(node.x,node.y,radius,0,2*Math.PI)
+	ctx.strokeStyle = settings.nodeColor
+	ctx.lineWidth = Math.floor radius / 2
+	ctx.stroke()
+	ctx.closePath()
+
+#Establishes aesthetic defaults and all drawing protocols to be run through
+defaultSettings =
+	{
+		nodeSize: 2
+		nodeColor: '#888888'
+		protocols:
+			{
+				drawAllNodes: ->
+					for node in @sketchdata.nodes
+						drawNode @c, node
+			}
+	}
+#Loads in a clone of default settings and creates a handle 'settings'
+settings = sketchDisplay.settings = $.extend {}, defaultSettings
 
 
 

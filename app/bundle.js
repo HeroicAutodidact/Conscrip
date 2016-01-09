@@ -47,13 +47,18 @@
   \***************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	var dwin;
+	var drawWindow;
 	
-	dwin = __webpack_require__(/*! ./drawWindow.coffee */ 1);
+	drawWindow = __webpack_require__(/*! ./drawWindow.coffee */ 1);
 	
-	document.onready = function() {
-	  document.body.appendChild(document.body.createElement('p'));
-	  return dwin();
+	window.onload = function() {
+	  var dwin;
+	  dwin = new drawWindow;
+	  dwin.attach();
+	  return dwin._drawNode({
+	    x: 20,
+	    y: 20
+	  });
 	};
 
 
@@ -64,17 +69,51 @@
   \*********************************************/
 /***/ function(module, exports) {
 
-	var drawWindow;
+	var drawNode, settings, sketchDisplay;
 	
-	drawWindow = function() {
-	  var _canvas;
-	  _canvas = document.createElement('canvas');
-	  _canvas.width = 500;
-	  _canvas.height = 500;
-	  return document.body.appendChild(_canvas);
+	sketchDisplay.defaultSettings = {
+	  nodeSize: 3,
+	  nodeColor: '#888888'
 	};
 	
-	module.exports = drawWindow;
+	settings = sketchDisplay.settings = sketchDisplay.defaultSettings;
+	
+	sketchDisplay = function() {
+	  this._canvas = document.createElement('canvas');
+	  this._canvas.height = 500;
+	  this._canvas.width = 500;
+	  this._canvas.id = 'conscriptDisplay';
+	  this.c = this._canvas.getContext('2d');
+	  this._protocols = settings.protocols;
+	};
+	
+	sketchDisplay.prototype.attach = function(parentElement) {
+	  if (parentElement != null) {
+	    parentElement.appendChild(this._canvas);
+	  } else {
+	    document.body.appendChild(this._canvas);
+	  }
+	};
+	
+	sketchDisplay.prototype.getProtocols = function() {
+	  return Object.keys(this._protocols);
+	};
+	
+	
+	/*Some drawing methods included by default */
+	
+	drawNode = function(node) {
+	  var radius;
+	  this.c.save();
+	  this.c.beginPath();
+	  radius = settings.nodeSize;
+	  this.c.arc(node.x, node.y, radius, 0, 2 * Math.PI);
+	  this.c.strokeStyle = settings.nodeColor;
+	  this.c.stroke();
+	  return this.c.closePath();
+	};
+	
+	module.exports = sketchDisplay;
 
 
 /***/ }
