@@ -1,0 +1,4 @@
+KeyMap = (ops)->
+
+KeyMap::fnFromKey = ->
+

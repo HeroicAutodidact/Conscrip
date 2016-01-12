@@ -1,3 +1,0 @@
-* [ ] If I could comb through this and remove dependency on setMatrixUniforms that would be great. I only need to set the perspective once
-* [ ] Attach the camera class in here. 
-* [ ] Allow the camera to produce the 

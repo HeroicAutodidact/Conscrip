@@ -5,7 +5,7 @@ SketchData = require './sketchdata'
 
 #Every module has its own settings
 
-sketchDisplay = (sketchdata)->
+sketchDisplay = (sketchdata, context)->
 	##This is the window which is be used to display sketches
 
 	#Canvas setup
@@ -20,6 +20,7 @@ sketchDisplay = (sketchdata)->
 
 	#Initialize the sketchdata object
 	@sketchdata = sketchdata
+	@context = context
 
 	return
 

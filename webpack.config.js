@@ -11,5 +11,10 @@ module.exports = {
     },
     resolve: {
         extensions:['','.js', '.coffee']
+    },
+    node: {
+      fs: "empty",
+      module: "empty",
+      child_process: "emtpy"
     }
 }
