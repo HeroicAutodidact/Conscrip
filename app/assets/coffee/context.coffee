@@ -1,10 +1,8 @@
-Context = ->
-	selectedSketch = undefined
-	keymap = undefined
-	return
+context =
+	selectedSketch:  undefined
+	keymap: undefined
+	selectSketch: (sketch)->
+		selectedSketch = sketch
+		return
 
-Context::selectSketch = (sketch)->
-	selectedSketch = sketch
-	return
-
-module.exports = Context
+module.exports = context

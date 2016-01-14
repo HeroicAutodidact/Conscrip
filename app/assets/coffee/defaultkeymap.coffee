@@ -1,1 +1,2 @@
-defaultkeymap.coffee
+module.exports =
+	'a':'placeNode'

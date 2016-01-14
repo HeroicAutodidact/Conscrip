@@ -3,11 +3,15 @@ DrawWindow = require './drawWindow'
 SketchData = require './sketchdata'
 context = require './context'
 ops = require './operations'
-KeyMap = require './keymap'
+# KeyMap = require './keymap'
+bindkeys = require './bindKeys'
+bindkeys.linkOps ops
+defaultkeymap = require './defaultkeymap'
 
 ##Linking procedure
 ops.context = context
-KeyMap.linkOps ops
+console.log ops
+# KeyMap.linkOps ops
 
 
 # defaultKeymap = require './defaultkeymap'
@@ -36,10 +40,12 @@ window.onload = ->
 	#This is just drafting, so we'll just create a single instance of
 	#SketchData
 	sketchdata = new SketchData
-	context = new Context
 	context.selectSketch sketchdata
 	dwin = new DrawWindow sketchdata, context
 	dwin.attach()
+
+	#Bind keys
+	bindkeys defaultkeymap
 
 
 	###TEST###
