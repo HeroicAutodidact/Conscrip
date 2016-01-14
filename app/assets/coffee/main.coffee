@@ -1,7 +1,18 @@
+#Core modules are loaded
 DrawWindow = require './drawWindow'
 SketchData = require './sketchdata'
-Context = require './context'
+context = require './context'
 ops = require './operations'
+KeyMap = require './keymap'
+
+##Linking procedure
+ops.context = context
+KeyMap.linkOps ops
+
+
+# defaultKeymap = require './defaultkeymap'
+# context.keymap = defaultKeymap
+# defaultKeymap.ops = ops
 
 ###TEST###
 Node = require './node'
@@ -13,7 +24,6 @@ ceval = CoffeeScriptBrowser.eval
 #codeWindow = require './codeWindow.coffee'
 #sketchOperations = require './sketchOperations.coffee'
 #mouseHandle = require './mouseHandle.coffee'
-keymap = require './defaultKeymap.coffee'
 #settingsManager = require './settingsManager.coffee'
 
 dwin = undefined
@@ -23,8 +33,11 @@ mainLoop = ->
 	window.requestAnimationFrame(mainLoop)
 
 window.onload = ->
+	#This is just drafting, so we'll just create a single instance of
+	#SketchData
 	sketchdata = new SketchData
 	context = new Context
+	context.selectSketch sketchdata
 	dwin = new DrawWindow sketchdata, context
 	dwin.attach()
 

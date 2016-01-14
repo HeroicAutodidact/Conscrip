@@ -1,9 +1,8 @@
-#Assumptions and standards
+#Some utility modules
 $ = require 'jquery'
 _ = require 'lodash'
 SketchData = require './sketchdata'
 
-#Every module has its own settings
 
 sketchDisplay = (sketchdata, context)->
 	##This is the window which is be used to display sketches

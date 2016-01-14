@@ -1,5 +1,6 @@
 Context = ->
 	selectedSketch = undefined
+	keymap = undefined
 	return
 
 Context::selectSketch = (sketch)->
