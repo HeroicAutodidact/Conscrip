@@ -33,7 +33,7 @@ window.onload = ->
 	#We'll just create a single instance of
 	#SketchData
 	sketchdata = new SketchData
-	context.selectSketch sketchdata
+	context.select.sketch sketchdata
 	dwin = new SketchDisplay sketchdata, context
 	dwin.attach()
 

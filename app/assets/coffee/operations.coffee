@@ -10,7 +10,7 @@ Operations =
     ###Places a node underneat the mouse###
     [x,y] = @mousehandle.position()
     console.log @context
-    @context.selected.sketch.points.push new Point(x,y)
+    @context.selected.sketch().points.push new Point(x,y)
 
   selectPoint: (point)->
     @context.selectPoint point

@@ -1,3 +1,4 @@
-Method to draw nodes in the drawWindow
-I want to be able to gracefully extend drawWindow's behavior by handing it objects consisting of data and a function
-I need to make sure mocha tests are working. (Or jasmine, but mocha would probably be faster for non-browser stuff.)
+[ ] Method to draw nodes in the drawWindow
+[ ] I want to be able to gracefully extend drawWindow's behavior by handing it objects consisting of data and a function
+[x] I need to make sure mocha tests are working. (Or jasmine, but mocha would probably be faster for non-browser stuff.)
+[ ] I should have a main display distinct from a sketch display. This can be referenced by the mousehandler more gracefully
