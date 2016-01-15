@@ -59,8 +59,8 @@ defaultSettings =
 		protocols:
 			{
 				drawAllNodes: ->
-					for node in @sketchdata.nodes
-						drawNode @c, node
+					for point in @sketchdata.points
+						drawNode @c, point
 			}
 	}
 #Loads in a clone of default settings and creates a handle 'settings'

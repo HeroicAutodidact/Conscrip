@@ -15,12 +15,6 @@ bindkeys.linkOps ops
 
 # KeyMap.linkOps ops
 
-
-
-###TEST###
-Node = require './node'
-
-
 CoffeeScriptBrowser = require 'coffee-script-browser'
 ceval = CoffeeScriptBrowser.eval
 # CoffeeCompiler = require 'coffee-compiler'
@@ -36,7 +30,7 @@ mainLoop = ->
 	window.requestAnimationFrame(mainLoop)
 
 window.onload = ->
-	#This is just drafting, so we'll just create a single instance of
+	#We'll just create a single instance of
 	#SketchData
 	sketchdata = new SketchData
 	context.selectSketch sketchdata
@@ -54,7 +48,6 @@ window.onload = ->
 
 
 	###TEST###
-	sketchdata.nodes.push(new Node(10,10))
 	#ceval 'alert "fun"' #Apparently I can evaluate coffeescript like this
 	###ENDTEST###
 

@@ -1,5 +1,5 @@
 SketchData = ->
-	@nodes = []
+	@points= []
 	@edges = []
 	return
 

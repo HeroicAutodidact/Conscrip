@@ -1,2 +1,2 @@
 module.exports =
-	'a':'placeNode'
+	'a':'placePoint'
