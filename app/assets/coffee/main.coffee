@@ -1,22 +1,21 @@
 #Core modules are loaded
-DrawWindow = require './drawWindow'
+SketchDisplay = require './sketchdisplay'
 SketchData = require './sketchdata'
 context = require './context'
 ops = require './operations'
 # KeyMap = require './keymap'
 bindkeys = require './bindKeys'
-bindkeys.linkOps ops
 defaultkeymap = require './defaultkeymap'
+mousehandle = require './mousehandle'
 
 ##Linking procedure
 ops.context = context
-console.log ops
+ops.mousehandle = mousehandle
+bindkeys.linkOps ops
+
 # KeyMap.linkOps ops
 
 
-# defaultKeymap = require './defaultkeymap'
-# context.keymap = defaultKeymap
-# defaultKeymap.ops = ops
 
 ###TEST###
 Node = require './node'
@@ -41,8 +40,14 @@ window.onload = ->
 	#SketchData
 	sketchdata = new SketchData
 	context.selectSketch sketchdata
-	dwin = new DrawWindow sketchdata, context
+	dwin = new SketchDisplay sketchdata, context
 	dwin.attach()
+
+	###TEMPORARY, THIS SHOULD BE MOVED TO THE LINKING PROCEDURE SECTION###
+	#In the future, ddwin acts as a buffer which is drawn to a central canvas.
+	context.display = dwin._canvas
+	mousehandle.link_context context
+	###END TEMPORARY###
 
 	#Bind keys
 	bindkeys defaultkeymap
