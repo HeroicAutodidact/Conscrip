@@ -23,10 +23,10 @@ ceval = CoffeeScriptBrowser.eval
 #mouseHandle = require './mouseHandle.coffee'
 #settingsManager = require './settingsManager.coffee'
 
-dwin = undefined
+sdisplay = undefined
 
 mainLoop = ->
-	do dwin.draw
+	do sdisplay.draw
 	window.requestAnimationFrame(mainLoop)
 
 window.onload = ->
@@ -34,12 +34,12 @@ window.onload = ->
 	#SketchData
 	sketchdata = new SketchData
 	context.select.sketch sketchdata
-	dwin = new SketchDisplay sketchdata, context
-	dwin.attach()
+	sdisplay = new SketchDisplay sketchdata, context
+	sdisplay.attach()
 
 	###TEMPORARY, THIS SHOULD BE MOVED TO THE LINKING PROCEDURE SECTION###
-	#In the future, ddwin acts as a buffer which is drawn to a central canvas.
-	context.display = dwin._canvas
+	#In the future, dsdisplay acts as a buffer which is drawn to a central canvas.
+	context.display = sdisplay.canvas
 	mousehandle.link_context context
 	###END TEMPORARY###
 
