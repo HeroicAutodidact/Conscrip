@@ -1,67 +1,88 @@
 ###
 context.coffee
 ###
-module.exports = do ->
-	###
-	The interface which other modules will use to access context
-	###
-	inter = {}
+# module.exports = do ->
+# 	###
+# 	The interface which other modules will use to access context
+# 	###
+# 	inter = {}
 
 
-	###Selection data###
-	selected =
-		sketch: undefined
-		points: []
-		edges: []
+# 	###Selection data###
+# 	selected =
+# 		sketch: undefined
+# 		points: []
+# 		edges: []
 
-	#Getters
-	inter.selected = {}
-	inter.selected.sketch = -> selected.sketch
-	inter.selected.points = -> selected.points
-	inter.selected.edges = -> selected.edges
+# 	#Getters
+# 	inter.selected = {}
+# 	inter.selected.sketch = -> selected.sketch
+# 	inter.selected.points = -> selected.points
+# 	inter.selected.edges = -> selected.edges
 
-	#setters
-	inter.select = {}
-	inter.select.sketch = (sketch)-> selected.sketch = sketch
-	inter.select.point = (point)-> selected.points.push point
-	inter.select.edge = (edge)-> selected.edges.push edge
+# 	#setters
+# 	inter.select = {}
+# 	inter.select.sketch = (sketch)-> selected.sketch = sketch
+# 	inter.select.point = (point)-> selected.points.push point
+# 	inter.select.edge = (edge)-> selected.edges.push edge
 
-	###Hover data###
-	hovered =
-		points: []
-		edges: []
+# 	###Hover data###
+# 	hovered =
+# 		points: []
+# 		edges: []
 
-	#getters
-	inter.hovered = {}
-	inter.hovered.points = -> hovered.points
-	inter.hovered.edges = -> hovered.edges
+# 	#getters
+# 	inter.hovered = {}
+# 	inter.hovered.points = -> hovered.points
+# 	inter.hovered.edges = -> hovered.edges
 
-	#setters
-	inter.hover = {}
-	inter.hover.point = (point)-> hovered.points.push point
+# 	#setters
+# 	inter.hover = {}
+# 	inter.hover.point = (point)-> hovered.points.push point
+# 	inter.unhover = ->
+# 		hovered.points.length = 0
+# 		hovered.edges.length = 0
 
-	###Push up the interface###
-	return inter
-	# selected:
-	# 	sketch: undefined
-	# 	points: []
-	# 	edges: []
-	# hovered:
-	# 	points: []
-	# 	edges: []
-	# ###Note: Perhaps later I can make a more elegant naming scheme
-	# say, specifying subobjects such as context.select.sketch(<sketch>)###
-	# selectSketch: (sketch)->
-	# 		@selected.sketch = sketch
-	# 		return
-	# selectPoint: (point)->
-	# 		@selected.points.push point
-	# 		return
-	# hoverPoint: (point)->
-	# 		@hovered.points.push point
-	# deselectAll: ->
-	# 	###Clear all arrays ###
-	# 	@selected.points.length = 0
-	# 	@selected.edges.length = 0
+# 	###Push up the interface###
+# 	return inter
 
-# module.exports = context
+module.exports = new class
+	constructor: ->
+		@selected =
+			sketch: undefined
+			points: []
+			edges: []
+
+		@hovered =
+			points: []
+			edges: []
+
+		#Convenience accessors
+		@select =
+			sketch: @select_sketch
+			points: @select_point
+			edges: @select_edge
+
+		@hover =
+			point: @hover_point
+			edge: @hover_edge
+
+	select_sketch: (sketch)=>
+		@selected.sketch = sketch
+
+	select_point: (point)=>
+		@selected.points.push point
+
+	select_edge: (edge)=>
+		@selected.edges.push edge
+
+	hover_point: (point)=>
+		@hovered.points.push point
+
+	hover_edge: (edge)=>
+		@hovered.edges.push edge
+
+	unhover: =>
+		#Iterate over all hovered collections and reset them
+		for n,collection of @hovered
+			collection.length = 0

@@ -10,9 +10,13 @@ module.exports = do ->
 
 		###Should work fine when the sketchdisplay is a simple canvas###
 		context.display.onmousemove = (e)->
+			###Update mouse position###
 			canvas_pos[0] = e.clientX - context.display.getBoundingClientRect().left
 			canvas_pos[1] = e.clientY - context.display.getBoundingClientRect().top
-			for p in context.selected.sketch().points
+
+			###Update hovered###
+			do context.unhover
+			for p in context.selected.sketch.points
 				context.hover.point p if p.is_hovered_by inter.position()
 
 	return inter #Send up the interface for public access

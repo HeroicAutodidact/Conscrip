@@ -7,8 +7,9 @@ bindkeys = (keyDict)->
 		if not ops[fnstr]?
 			throw Error "#{fnstr} isn't a function"
 		else
-			Mousetrap.bind kstr, ->
-				do ops[fnstr]
+			Mousetrap.bind kstr, ops[fnstr]
+	# Mousetrap.bind 'a', ops['placePoint']
+	# Mousetrap.bind 'g', ops['selectHovered']
 
 bindkeys.linkOps = (newops)->
 	ops = newops

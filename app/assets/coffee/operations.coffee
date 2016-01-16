@@ -1,26 +1,47 @@
 Point = require './point'
 
-Operations =
-  context: undefined #Must be linked for module to function
-  mousehandle: undefined #Must be linked for module to function
-  ###
-  Direct manipulation of selected sketch
-  ###
-  placePoint: ->
-    ###Places a node underneat the mouse###
+module.exports = new class Operations
+  constructor: ->
+    @context = undefined
+    @mousehandle = undefined
+
+  placePoint: =>
+    console.log "9"
     [x,y] = @mousehandle.position()
-    console.log @context
-    @context.selected.sketch().points.push new Point(x,y)
+    @context.selected.sketch.points.push new Point(x,y)
 
-  selectPoint: (point)->
-    @context.selectPoint point
+  selectPoint: (point)=>
+    @context.select_point point
 
-  selectHovered: ->
+  selectHovered: =>
+    console.log "10"
     ###
     For now, we'll just take the first point
     but eventually, there needs to be a way of making
     distinctions when objects are close together or overlapping
     ###
-    @context.selectPoint context.hovered.points[0]
+    @selectPoint @context.hovered.points[0]
 
-module.exports = Operations
+# Operations =
+#   context: undefined #Must be linked for module to function
+#   mousehandle: undefined #Must be linked for module to function
+#   ###
+#   Direct manipulation of selected sketch
+#   ###
+#   placePoint: ->
+#     ###Places a point underneat the mouse###
+#     [x,y] = @mousehandle.position()
+#     @context.selected.sketch.points.push new Point(x,y)
+
+#   selectPoint: (point)=>
+#     @context.selectPoint point
+
+#   selectHovered: =>
+#     ###
+#     For now, we'll just take the first point
+#     but eventually, there needs to be a way of making
+#     distinctions when objects are close together or overlapping
+#     ###
+#     @selectPoint @context.hovered.points[0]
+
+# module.exports = Operations
