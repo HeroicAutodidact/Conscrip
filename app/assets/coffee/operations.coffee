@@ -20,6 +20,7 @@ module.exports = new class Operations
     ###
     @selectPoint @context.hovered.points[0]
 
+
 # Operations =
 #   context: undefined #Must be linked for module to function
 #   mousehandle: undefined #Must be linked for module to function

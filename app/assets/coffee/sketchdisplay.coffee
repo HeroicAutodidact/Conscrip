@@ -16,7 +16,7 @@ module.exports = class SketchDisplay
 			@protocols[name] = dp.bind @
 			@protocols[name].pname = name #attach the name to the protocol for easy access
 		@active_protocols = []
-		@activate_protocols ['clear','drawAllPoints','highlightHoveredPoints']
+		@activate_protocols ['clear','drawAllPoints','highlightHoveredPoints','highlightSelectedPoints']
 
 	attach: (parentElement)->
 		if parentElement?
@@ -30,10 +30,12 @@ module.exports = class SketchDisplay
 		$(@canvas).offset()
 
 	activate_protocols: (pnames)=>
-		@activate_protocols = {}
+		#Populates the display protocols with the protocols named in the provided array
+		@active_protocols = []
 		for pname in pnames
 			protocol = _.find @protocols, (pro)-> return pro.pname is pname
 			@active_protocols.push protocol
+
 
 	draw: =>
 		for protocol in @active_protocols

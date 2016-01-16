@@ -2,13 +2,13 @@
 DRAWING HELPERS
 ###
 pointColor = '#888888'
-pointSize = 2
+pointSize = 3
 
 drawPoint = (ctx,point)->
 	ctx.save()
 	ctx.beginPath()
 	radius = pointSize
-	ctx.arc(point.x,point.y,radius,0,2*Math.PI)
+	ctx.arc(point.x,point.y,radius,0,2*Math.PI,true)
 	ctx.strokeStyle = pointColor
 	ctx.lineWidth = Math.floor radius / 2
 	ctx.stroke()
@@ -22,10 +22,21 @@ hover_highlight = (ctx, point)->
 	radius = pointSize * 2
 	ctx.arc(point.x,point.y,radius,0,2*Math.PI)
 	ctx.strokeStyle = pointColor
-	ctx.lineWidth = Math.floor radius / 2
+	ctx.lineWidth = Math.floor radius / 4
 	ctx.stroke()
 	ctx.closePath()
 	ctx.restore()
+
+select_highlight = (ctx, point)->
+	ctx.save()
+	ctx.beginPath()
+	radius = pointSize
+	ctx.arc(point.x,point.y,radius,0,2*Math.PI)
+	ctx.fillStyle = pointColor
+	ctx.fill()
+	ctx.closePath()
+	ctx.restore()
+
 
 
 ###PROTOCOLS###
@@ -37,6 +48,10 @@ module.exports =
 	highlightHoveredPoints: ->
 		for point in @context.hovered.points
 			hover_highlight @ctx, point
+
+	highlightSelectedPoints: ->
+		for point in @context.selected.points
+			select_highlight @ctx, point
 
 	clear: ->
 		@ctx.save()
