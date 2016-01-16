@@ -6,7 +6,6 @@ module.exports = new class Operations
     @mousehandle = undefined
 
   placePoint: =>
-    console.log "9"
     [x,y] = @mousehandle.position()
     @context.selected.sketch.points.push new Point(x,y)
 
@@ -14,7 +13,6 @@ module.exports = new class Operations
     @context.select_point point
 
   selectHovered: =>
-    console.log "10"
     ###
     For now, we'll just take the first point
     but eventually, there needs to be a way of making
