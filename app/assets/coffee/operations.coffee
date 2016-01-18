@@ -1,6 +1,12 @@
 Point = require './point'
+Edge = require './edge'
+log = require './log'
 
 module.exports = new class Operations
+  ###
+  A singleton module containing methods for manipulating
+  sketchdata
+  ###
   constructor: ->
     @context = undefined
     @mousehandle = undefined
@@ -18,7 +24,23 @@ module.exports = new class Operations
     but eventually, there needs to be a way of making
     distinctions when objects are close together or overlapping
     ###
-    @selectPoint @context.hovered.points[0]
+    pointUnderMouse = @context.hovered.points[0]
+    @selectPoint pointUnderMouse if pointUnderMouse?
+
+  connectSelectedPoints: =>
+    spoints = @context.selected.points
+    if spoints.length isnt 2
+      log "Can't connect, #{spoints.length} points are selected, need exactly 2"
+
+    ###SHOULD be eventually replaced with a collection method ensuring uniqueness###
+    newedge = new Edge(spoints[0], spoints[1])
+    for e in @context.selected.sketch.edges
+      if e.equals newedge
+        return
+    @context.selected.sketch.edges.push newedge
+    ###ENDSHOULD###
+
+
 
 
 # Operations =

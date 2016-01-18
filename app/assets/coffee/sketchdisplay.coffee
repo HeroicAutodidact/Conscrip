@@ -16,7 +16,7 @@ module.exports = class SketchDisplay
 			@protocols[name] = dp.bind @
 			@protocols[name].pname = name #attach the name to the protocol for easy access
 		@active_protocols = []
-		@activate_protocols ['clear','drawAllPoints','highlightHoveredPoints','highlightSelectedPoints']
+		@activate_protocols ['clear','drawAllPoints','highlightHoveredPoints','highlightSelectedPoints','drawAllEdges']
 
 	attach: (parentElement)->
 		if parentElement?

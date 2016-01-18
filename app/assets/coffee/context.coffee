@@ -46,7 +46,7 @@ context.coffee
 # 	###Push up the interface###
 # 	return inter
 
-module.exports = new class
+module.exports = new class Context
 	constructor: ->
 		@selected =
 			sketch: undefined

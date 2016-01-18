@@ -1,3 +1,4 @@
 module.exports =
 	'a':'placePoint'
-	'g':'selectHovered'
+	's':'selectHovered'
+	'e':'connectSelectedPoints'

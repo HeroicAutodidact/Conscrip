@@ -18,6 +18,5 @@ module.exports = do ->
 			do context.unhover
 			for p in context.selected.sketch.points
 				context.hover.point p if p.is_hovered_by inter.position()
-			console.log context.selected.points
 
 	return inter #Send up the interface for public access

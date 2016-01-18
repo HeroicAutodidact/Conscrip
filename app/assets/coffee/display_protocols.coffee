@@ -3,6 +3,7 @@ DRAWING HELPERS
 ###
 pointColor = '#888888'
 pointSize = 3
+edgeThickness = 2
 
 drawPoint = (ctx,point)->
 	ctx.save()
@@ -37,6 +38,16 @@ select_highlight = (ctx, point)->
 	ctx.closePath()
 	ctx.restore()
 
+drawEdge = (ctx, edge)->
+	ctx.save()
+	ctx.beginPath()
+	ctx.lineWidth = edgeThickness
+	ctx.strokeStyle = pointColor
+	ctx.moveTo edge.sp.x, edge.sp.y
+	ctx.lineTo edge.ep.x, edge.ep.y
+	ctx.stroke()
+	ctx.closePath()
+	ctx.restore()
 
 
 ###PROTOCOLS###
@@ -52,6 +63,10 @@ module.exports =
 	highlightSelectedPoints: ->
 		for point in @context.selected.points
 			select_highlight @ctx, point
+
+	drawAllEdges: ->
+		for edge in @context.selected.sketch.edges
+			drawEdge @ctx, edge
 
 	clear: ->
 		@ctx.save()
